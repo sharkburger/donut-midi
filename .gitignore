@@ -5,3 +5,7 @@ __pycache__/
 *.zip
 *.log
 NEON-CONNECTION-CHECK.json
+
+.connector-venv/
+dist/
+_site/

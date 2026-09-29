@@ -1,0 +1,5 @@
+pupil-labs-realtime-api==1.9.0
+opencv-contrib-python==4.14.0.94
+numpy==2.3.5
+websockets==15.0.1
+pupil-labs-neon-recording==2.1.6

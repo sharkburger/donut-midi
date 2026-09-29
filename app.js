@@ -106,7 +106,7 @@ function setConsumed(i,value,fromReplay=false){
 }
 function resetFood(){for(let i=0;i<ZONES.length;i++)setConsumed(i,false);lastNoteZone=-1;setPhase('prepare');toast('Score reset. Capture a new baseline for a new participant.');}
 function receive(s){sample=s;sampleReceived=performance.now();if(typeof captureResearchSample==='function')captureResearchSample(s,sampleReceived);}
-function disconnect(){if(ws){ws.onclose=null;ws.close();ws=null;}connectionState='Not connected';}
+function disconnect(){if(typeof stopNeonPackage==='function')stopNeonPackage();if(ws){ws.onclose=null;ws.close();ws=null;}connectionState='Not connected';}
 function switchSource(value){
   if(typeof statePatterns!=='undefined')statePatterns.reset();
   if(recording)stopRecording();disconnect();source=value;sample=null;sampleReceived=0;lastPupilAt=0;pointer={x:null,y:null};calibrating=null;
@@ -250,7 +250,7 @@ screenScoreButton.onclick=()=>{
   if(document.getElementById('screenScoreOverlay'))return;
   const overlay=document.createElement('div');overlay.id='screenScoreOverlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:#ddd;display:flex;align-items:center;justify-content:center';
-  overlay.innerHTML='<img src="monitor-mat.svg?v=english-1" alt="Donut gaze score" style="max-width:100%;max-height:100%;width:auto;height:auto"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:13px;background:white;padding:3px 10px;color:black" aria-live="polite"></div><button style="position:absolute;bottom:4px;right:4px">Back to controls</button><button style="position:absolute;bottom:4px;left:4px">Full screen</button>';
+  overlay.innerHTML='<img src="monitor-mat.svg?v=connector-1" alt="Donut gaze score" style="max-width:100%;max-height:100%;width:auto;height:auto"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:13px;background:white;padding:3px 10px;color:black" aria-live="polite"></div><button style="position:absolute;bottom:4px;right:4px">Back to controls</button><button style="position:absolute;bottom:4px;left:4px">Full screen</button>';
   const status=overlay.querySelector('div');
   const gazeDot=document.createElement('span');
   gazeDot.style.cssText='position:absolute;width:18px;height:18px;border:3px solid #007c91;border-radius:50%;background:#ffffff99;transform:translate(-50%,-50%);pointer-events:none;display:none;box-shadow:0 0 0 2px white';

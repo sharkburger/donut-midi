@@ -1,118 +1,53 @@
-## 公开网页
-
-访问 https://sharkburger.github.io/donut-song/ 。点击开启声音，用鼠标停留甜甜圈演奏；个人音频仅在当前浏览器处理。真实 Neon 连接目前仍使用本地版，公开版连接器尚未提供。状态曲线是自述／创作映射，不是经过验证的认知分类。
-
-GitHub Pages 由 `.github/workflows/pages.yml` 从 `aoi-cognitive-voices` 自动发布，发布前运行 JavaScript 测试，只上传列出的网页资源。Python 桥接和参与者记录不在站点发布目录内。
-
 # Donut MIDI
 
-当前版本：八个自然音键（C4–C5）、内置合成钢琴／拨弦吉他／合成器、自选音频、持续伴奏、Web MIDI 输出和研究跟奏采集。打开 `index.html?v=midi-1&neon=1`。详情见 [MIDI 使用说明](MIDI-GUIDE.md)。
+A gaze-controlled, edible musical interface using Pupil Labs Neon, p5.js and Web Audio.
 
-# Donut Song / 甜甜圈之歌 · 第一版
+**Public website:** https://sharkburger.github.io/donut-song/
 
-一个使用 p5.js 绘制、Web Audio 合成声音的可食用眼动乐器。注视选音，瞳孔变化改变音色，品尝与吃完改变作品的进程。界面中文，依赖已随包保存，模拟和回放可离线运行。
+**Local connector download:** https://sharkburger.github.io/donut-song/downloads/donut-midi-connector.zip
 
-## 先体验（不需要 Neon）
+## Play without glasses
 
-1. 双击 `index.html`，用 Chrome / Edge / Safari 打开。也可在 Mac 双击 `启动甜甜圈之歌.command`，或在此文件夹运行 `python3 serve.py`。本机网址为 http://127.0.0.1:8088 。实时连接建议使用这个本机网址，不使用 file:// 页面。
-2. 点击「开启声音与演奏」，浏览器需要这一次点击才能播放声音。
-3. 在三个甜甜圈区域停留约半秒，分别演奏 C4 / E4 / G4。持续停留只发一次，离开再看可再次发声。
-4. 移动右侧「模拟瞳孔」滑块，改变随后音符或延音的音色。滑块是合成输入，不是测量值。
-5. 切换「品尝」，延续最后一个声音，暂停新选音；切换「余味」恢复选音。
-6. 点击某个甜甜圈下面的「吃完了」，退出该声部；再次点击撤销。「重新摆盘」恢复全部。
-7. 看休止区让声音衰减；空格暂停／恢复声音。输入框、按钮获得焦点时空格遵循原控件行为。
+Click **Enable sound & play**, then hold the pointer over a donut. Eight natural notes span C4–C5. Look away and back to retrigger a note. Choose synth piano, plucked guitar or synthesizer, or load a personal audio clip for each donut. Files stay in the browser and must be loaded again after refreshing.
 
-想快速听完整示例：选择「数据回放」→「示例数据」→「播放」。30 秒示例全部由程序合成，不是参与者数据。
+Use **Focus loop** for continuous accompaniment. Self-reports persist until changed. Creative curve-driven accompaniment requires eight seconds of stability. These choices are musical mappings, not automatic mental-state recognition.
 
-## 工作坊中怎么教
+## Connect Neon
 
-- **注视版**：先只改三个音高和停留时间，理解“输入→规则→声音”。
-- **身体版**：打开身体调制，比较音色的变化；参考值并不等于“情绪中性”。
-- **自定版**：选择音色明亮度或轻微颤音，改变调制强度。
-- 无设备的小组继续用模拟或回放模式创作；有设备的小组轮流佩戴与品尝。
-- 「投影视图」隐藏控制台。仍保留输入来源和记录状态，点击「返回创作台」退出。
-- 每个参与者更换时重新采集参考值。程序不自动判断喜欢、情绪、认知负荷、咀嚼或吃完。
+Download and extract the connector. On macOS, open **Start Neon Connector.command**. Python 3.11–3.14 is required; first launch installs dependencies into a private environment. The phone and computer must be on the same Wi-Fi, with Companion open.
 
-## 连接 Neon
+The connector opens the public site with a fresh pairing code. Click **Connect local Neon**, allow local-network access if requested, then enable sound. Open the marked screen mat and keep all four AprilTags visible. If the browser blocks public-to-local access, use the **Local fallback** link printed by the connector. It serves the same English interface on your computer.
 
-### 一次性安装
+Read the [online setup guide](https://sharkburger.github.io/donut-song/connector-guide.html) or [connector README](connector/README.md). This is a Python launcher package, not a signed app with an embedded runtime. The Windows launcher is included but has not been validated on Windows hardware.
 
-需要 Python 3.11 或更新版本；实际软件检查环境为 macOS / Python 3.14。不同平台的二进制依赖仍可能需要安装适配。先进入此文件夹：
+To specify a phone or alternative port from the extracted folder:
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r bridge/requirements.txt
+python3 connector/launch.py --ip 10.0.0.155 --port 8766
 ```
 
-Windows 激活命令为 `.venv\Scripts\activate`。不要在已有研究环境中直接升级依赖，使用独立虚拟环境。
+Replace the IP with your Companion address. Close the connector with Ctrl+C. Restarting generates a new pairing code.
 
-### 布置桌面
+The previous local WebSocket route remains available: run `python3 serve.py`, start `bridge/neon_bridge.py` in an environment with `bridge/requirements.txt`, and connect to `ws://127.0.0.1:8765` from the local page.
 
-1. 打印 `mat.svg`，A3 横向，保持比例，建议哑光纸。图面比例为 1.5:1（420 × 280 mm），页面可能留白；整体等比缩放不改变定位，不能单独移动或缩放标记。
-2. 保持四角 AprilTag 36h11 标记（ID 0、1、2、3）全部可见，勿裁切、旋转单个标记或被餐盘遮挡。
-3. 把三个甜甜圈或品尝小碟放在圆心附近。系统识别固定区域，不识别甜甜圈本身。食物移走后该区域仍是同一个音符，直到同伴点击「吃完了」。
-4. 参与者应能自然看到整个桌垫；准备/采集参考值时保持同一观看位置。每次正式体验前分别看三个圆心，确认光标位置正确。
+## Signals, privacy and research
 
-### 运行
+The connector maps matched scene/gaze samples to a planar mat at roughly 30 Hz. It forwards gaze position, worn/surface validity, pupil diameter when available, and native Neon eye geometry. Pupil baseline calibration is required for pupil modulation, but not for gaze notes. The 3D spheres visualize native Neon centers and optical axes; they are not pye3d fits or eye video.
 
-1. Neon 接 Companion，打开应用；手机和电脑在相同且允许设备互通的局域网。启用 **Compute eye state**（具体名称随 Companion 版本变化），以提供瞳孔直径。
-2. 一个终端启动网页：`python serve.py`。
-3. 另一个已激活环境的终端启动桥接：`python bridge/neon_bridge.py`。
-4. 自动发现失败时可以指定手机 IP：`python bridge/neon_bridge.py --ip 192.168.1.20`，替换为手机实际地址。连接端口为 8080。
-5. 网页选择「Neon 实时」，点击连接。默认桥接地址 `ws://127.0.0.1:8765`。
-6. 确认状态显示「注视与瞳孔可用」。点击「采集参考值 · 15 秒」，保持观看位置与照明稳定；有效样本不足会拒绝采集。采集完成后再开启观看与声音。
-7. 只有注视而无瞳孔时，仍能选音，但不能启用有效的身体调制；检查 Compute eye state 设置。
+The connector binds only to loopback, checks website origins, requires a per-launch bearer code and retains only the latest sample. It does not save or upload scene video, gaze histories or audio. Optional website recording requires consent and an explicit start. Refreshing clears in-memory data; export sessions to keep them.
 
-### 第一版的实时边界
+The four sound regions are **relaxed, focused, stressed and confused**. Their ordering is artistic, not a psychological intensity scale. Eye patterns alone do not validate these states. The research panel collects a 45-second baseline and six short melody blocks with independent self-reports; the cognitive classifier is still **untrained**. Historical scientific notes are in [research/SCIENTIFIC-MODE.md](research/SCIENTIFIC-MODE.md).
 
-- 使用官方客户端的**场景视频与注视匹配样本**，约为场景帧率（通常约 30 Hz）；不是完整 200 Hz 眼动记录。浏览器记录也是约 30 Hz，可能重复或丢失设备样本，不用于精密扫视/凝视检测。
-- 四个标记缺少任何一个便使桌面定位无效，不沿用旧单应矩阵。此时暂停新选音；品尝阶段的有效瞳孔仍可调制延音。
-- 数据超过 500 ms 未更新或眼镜未佩戴会暂停新选音；实时掉线也会释放延音。短暂瞳孔缺失保持片刻，然后回到中性音色。
-- 使用平面单应映射，未做场景镜头畸变矫正，也未做食物高度的 3D 补偿。相机边缘、极斜视角、高餐具和抬起的食物可能带来误差。定位残差过大时拒绝映射。必须先通过现场圆心检查。
-- 桥接只向本机网页提供数值，不保存或发往网页相机画面，不主动启动 Neon 录像。Companion 自己的录制/上传设置需由主持人另行管理。
-- 本轮已检查 SDK 导入、接口签名、合成透视定位与遮挡失效；**没有使用真实 Neon 完成硬件联调**。需要你提供设备做最后验证。
+## Development and publishing
 
-## 记录、导出与回放
-
-默认不记录。说明用途并获得同意后勾选相应选项，再点「开始记录」。切换来源会停止当前记录；取消勾选也会停止。停止后点击「导出 JSON」。刷新或关闭页面会失去未导出的内存记录，下一次停止记录会替换上一份待导出记录。
-
-记录包含：
-- `schema: donut-song/1`、程序版本、输入来源和开始时间。
-- `initial`：本轮初始映射、阶段与参考值。
-- `samples`：相对时间（毫秒）、桌垫坐标、左右瞳孔（mm）、有效性、设备时间戳（秒）、场景注视坐标、个人参考值、平滑值、阶段与消耗状态。
-- `events`：音符、阶段切换、映射修改、吃完/撤销、声音开关与人工标记。
-
-不会记录姓名、音频、视频。模拟记录会标注 `simulate`，不能当真人数据。M 键或「标记时刻」可留下回访节点。
-
-导入 JSON 后，回放恢复原有输入、阶段、参考值与消耗状态，**使用当前声音映射重新配乐**。这不是原演出的逐采样音频复现，也不会自动应用旧的映射修改事件；这些事件保留用于分析。暂停后可调整规则，回到开头重新播放。
-
-本版暂未实现音频导出、完整视频回访、原始全频率记录、统一外部时钟同步和可撤回的长期数据管理。如计划正式 DIS 数据采集，需要在伦理方案中明确记录用途，并补充研究所需的数据精度与保存流程。
-
-## 学员改哪里
-
-- `core.js`：甜甜圈区域、停留交互、有效瞳孔判断、回放格式验证。
-- `app.js`：交互状态、声音合成、数据映射、p5.js 绘图。搜索 `WORKSHOP` 找到视觉入口；`Instrument.update()` 控制身体→声音映射。
-- `style.css`：布局和颜色。
-- `bridge/surface.py`：AprilTag 识别与平面映射。
-- `bridge/neon_bridge.py`：设备接入与本机 WebSocket。
-
-前端不需要构建工具、npm、CDN 或 API 密钥。声音采用 Web Audio，不依赖 p5.sound。
-
-## 验证命令
+GitHub Pages publishes `aoi-cognitive-voices` via `.github/workflows/pages.yml`. The workflow checks JavaScript, stages an explicit asset list, and generates a clean connector ZIP; it never includes environments, logs or participant recordings.
 
 ```sh
 node --test tests/*.test.cjs
-python tests/test_surface.py
-python tests/test_bridge.py
+python3 -m unittest discover -s tests -p 'test_*.py'
+python3 scripts/build_connector.py
 ```
 
-## 上游资料与许可
+Python bridge tests require bridge dependencies. Connector HTTP tests use only the Python standard library. Four corner markers use AprilTag 36h11, IDs 0–3. Eight AOIs are defined in `core.js`; regenerate mats with `bridge/generate_mat.py` after changing the layout.
 
-p5.js 1.11.11 随包分发，许可见 `vendor/p5-LICENSE.txt`。
-
-- [Neon 数据流](https://docs.pupil-labs.com/neon/data-collection/data-streams/)
-- [官方 Python 实时客户端](https://pupil-labs.github.io/pl-realtime-api/)
-- [OpenCV ArUco / AprilTag 检测](https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html)
-
-本项目的绘图、状态机与桥接由本次任务编写；AprilTag 编码由 OpenCV 生成。
+Browser audio needs a user gesture. Web MIDI availability and external DAW configuration vary. Online-to-local permissions vary across browsers; use the bundled local fallback when necessary.

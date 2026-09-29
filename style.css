@@ -6,3 +6,5 @@
 
 /* English labels need wrapping rather than fixed-width truncation. */
 .studio-heading>div:last-child{display:flex;flex-wrap:wrap;gap:8px}.studio label{flex-wrap:wrap}.studio label select{max-width:100%}.studio-docked small{display:block}.notes label{overflow-wrap:anywhere}.food-button{white-space:nowrap}#stateChart{min-width:0}.panel p{line-height:1.6}.header-right{flex-wrap:wrap}.score-footer{flex-wrap:wrap}.signal-legend{flex-wrap:wrap}
+
+.connector-panel{max-width:100%}.connector-panel .field{max-width:540px}.connector-panel input{max-width:100%;padding:10px;border:1px solid var(--line);border-radius:6px}.connector-panel .button-row{max-width:540px}.connector-panel p{max-width:100ch;overflow-wrap:anywhere}

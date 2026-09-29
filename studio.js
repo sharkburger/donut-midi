@@ -16,7 +16,8 @@ $('connectEyes').onclick=connectRealEyes;
 async function startDuet(){
   if(calibrating){toast('Wait for pupil calibration to finish before playing.');return;}
   studioDemo=false;$('studioDemo').textContent='Start synthetic eye demo';
-  if(publicWebsite){if(source!=='simulate')switchSource('simulate');}
+  if(typeof neonPackageActive!=='undefined'&&neonPackageActive){/* Keep the authenticated live stream. */}
+  else if(publicWebsite){if(source!=='simulate')switchSource('simulate');}
   else {if(source!=='live')switchSource('live');if(!ws||ws.readyState>1)connect();}
   if(!audioEnabled)await toggleAudio();
   else {try{await instrument.start();}catch(e){toast('Could not start audio: '+e.message);return;}}
@@ -27,7 +28,7 @@ async function startDuet(){
   if(typeof startFocusBacking==='function')startFocusBacking();
   patternSoundEnabled=true;$('patternSound').checked=true;
   $('curveSound').checked=true;resetStudio();
-  if(publicWebsite){$('canvasHost').scrollIntoView({behavior:'smooth',block:'center'});toast('Hold the pointer on a donut to play. Focus accompaniment is manually selected, not inferred.');return;}
+  if(source!=='live'){$('canvasHost').scrollIntoView({behavior:'smooth',block:'center'});toast('Hold the pointer on a donut to play. Focus accompaniment is manually selected, not inferred.');return;}
   screenScoreButton.click();
   if(!studio.classList.contains('studio-docked'))$('screenStudioToggle')?.click();
   toast('Both voices enabled: dwell on donuts for notes; manually selected focus accompaniment continues.');
@@ -71,11 +72,11 @@ function updateStudio(now,observation,valid){
 }
 function drawStateChart(now){
  const canvas=$('stateChart'),w=Math.max(canvas.clientWidth,360),h=280,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)){canvas.width=Math.round(w*dpr);canvas.height=h*dpr;}const c=canvas.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
- const l=56,r=w-14,t=15,b=220,x=time=>l+(time-(now-30000))/30000*(r-l),y=value=>b-value/4*(b-t);
+ const l=82,r=w-14,t=15,b=220,x=time=>l+(time-(now-30000))/30000*(r-l),y=value=>b-value/4*(b-t);
  c.font='12px system-ui';for(let i=0;i<4;i++){c.fillStyle=regionColors[i];c.globalAlpha=.42;c.fillRect(l,y(i+1),r-l,(b-t)/4);c.globalAlpha=1;c.fillStyle='#4a4039';c.fillText(regionNames[i],3,y(i+.5)+4);}
- c.strokeStyle='#3a3530';c.lineWidth=1;c.beginPath();c.moveTo(l,t);c.lineTo(l,b);c.lineTo(r,b);c.stroke();for(let s=0;s<=30;s+=5){const px=l+s/30*(r-l);c.fillText(s===30?'Now':`${s-30}s`,px-10,239);}c.fillText('Sound timeline (s) · dots mark sound events',l,272);
+ c.strokeStyle='#3a3530';c.lineWidth=1;c.beginPath();c.moveTo(l,t);c.lineTo(l,b);c.lineTo(r,b);c.stroke();for(let s=0;s<=30;s+=5){const px=l+s/30*(r-l);c.fillText(s===30?'Now':`${s-30}s`,px-10,239);}c.fillText('Sound timeline (s) · dots = notes',l,272,r-l);
  c.strokeStyle='#513e59';c.lineWidth=2.5;c.beginPath();let pen=false;for(const p of curvePoints){if(p.value===null){pen=false;continue;}if(pen)c.lineTo(x(p.time),y(p.value));else c.moveTo(x(p.time),y(p.value));pen=true;}c.stroke();
- for(const p of soundPoints){const px=x(p.time),py=p.value===null?b:y(p.value);c.fillStyle=p.value===null?'#876b3f':'#722e77';c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill();c.fillText(p.label,Math.min(px+4,r-25),p.value===null?255:py-7);}
+ for(const p of soundPoints){const px=x(p.time),py=p.value===null?b:y(p.value);c.fillStyle=p.value===null?'#876b3f':'#722e77';c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill();c.fillText(p.label,Math.min(px+4,r-c.measureText(p.label).width),p.value===null?255:py-7);}
 }
 function validEye(eye){return eye&&Array.isArray(eye.center)&&eye.center.length===3&&eye.center.every(Number.isFinite)&&Array.isArray(eye.direction)&&eye.direction.length===3&&eye.direction.every(Number.isFinite)&&Math.hypot(...eye.direction)>.0001;}
 new p5(p=>{p.setup=()=>{const host=$('eyeScene');p.createCanvas(host.clientWidth,host.clientHeight,p.WEBGL).parent(host);p.pixelDensity(1);p.camera(0,0,230,0,0,0,0,1,0);new ResizeObserver(()=>p.resizeCanvas(host.clientWidth,host.clientHeight)).observe(host);};p.draw=()=>{
