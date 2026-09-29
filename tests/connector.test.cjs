@@ -35,3 +35,18 @@ test('starting a duet preserves a paired live stream on public and fallback page
   assert.equal(switches,0);assert.equal(connections,0);assert.equal(mat,1);
  }
 });
+
+test('default browser fetch retains its Window receiver',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm');
+ const context=vm.createContext({setTimeout,clearTimeout,AbortController,performance});
+ vm.runInContext(`
+  globalThis.fetchCalls=0;globalThis.lastError=null;
+  globalThis.fetch=async function(){
+   if(this!==globalThis)throw new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation");
+   fetchCalls++;return {ok:true,json:async()=>({connector:'donut-midi',status:'Connected'})};
+  };
+ `,context);
+ vm.runInContext(fs.readFileSync(require.resolve('../connector-client.js'),'utf8'),context);
+ vm.runInContext('globalThis.client=new NeonConnectorClient({sample:()=>{},lost:message=>{lastError=message;}})',context);
+ try{await context.client.start(token);assert.equal(context.lastError,null);assert.equal(context.fetchCalls,1);}finally{context.client.stop();}
+});

@@ -1,7 +1,7 @@
 /* Latest-sample polling; credentials never go to the remote website server. */
 (function(root){
  class NeonConnectorClient{
-  constructor({fetch:fetcher=globalThis.fetch,clock=()=>performance.now(),sample:receive,status=()=>{},lost=()=>{}}){this.fetcher=fetcher;this.clock=clock;this.receive=receive;this.status=status;this.lost=lost;this.generation=0;this.abort=null;this.timer=null;}
+  constructor({fetch:fetcher=globalThis.fetch.bind(globalThis),clock=()=>performance.now(),sample:receive,status=()=>{},lost=()=>{}}){this.fetcher=fetcher;this.clock=clock;this.receive=receive;this.status=status;this.lost=lost;this.generation=0;this.abort=null;this.timer=null;}
   stop(){this.generation++;this.abort?.abort();clearTimeout(this.timer);this.abort=null;this.timer=null;}
   async start(token,port=8766){
    this.stop();
