@@ -8,7 +8,7 @@
     "x": 0.185,
     "y": 0.32,
     "r": 0.083,
-    "name": "原味",
+    "name": "Original",
     "note": 60,
     "color": "#dfaf68"
   },
@@ -17,7 +17,7 @@
     "x": 0.395,
     "y": 0.32,
     "r": 0.083,
-    "name": "巧克力",
+    "name": "Chocolate",
     "note": 62,
     "color": "#715047"
   },
@@ -26,7 +26,7 @@
     "x": 0.605,
     "y": 0.32,
     "r": 0.083,
-    "name": "草莓",
+    "name": "Strawberry",
     "note": 64,
     "color": "#dc8b96"
   },
@@ -35,7 +35,7 @@
     "x": 0.815,
     "y": 0.32,
     "r": 0.083,
-    "name": "抹茶",
+    "name": "Matcha",
     "note": 65,
     "color": "#8b9d69"
   },
@@ -44,7 +44,7 @@
     "x": 0.185,
     "y": 0.65,
     "r": 0.083,
-    "name": "蓝莓",
+    "name": "Blueberry",
     "note": 67,
     "color": "#9181ae"
   },
@@ -53,7 +53,7 @@
     "x": 0.395,
     "y": 0.65,
     "r": 0.083,
-    "name": "柠檬",
+    "name": "Lemon",
     "note": 69,
     "color": "#ddc56b"
   },
@@ -62,7 +62,7 @@
     "x": 0.605,
     "y": 0.65,
     "r": 0.083,
-    "name": "焦糖",
+    "name": "Caramel",
     "note": 71,
     "color": "#bc8254"
   },
@@ -71,7 +71,7 @@
     "x": 0.815,
     "y": 0.65,
     "r": 0.083,
-    "name": "香草",
+    "name": "Vanilla",
     "note": 72,
     "color": "#e8d6b1"
   }
@@ -99,12 +99,12 @@
   }
   function validSample(s){return !!s&&finite(s.t)&&typeof s.worn==='boolean'&&typeof s.surfaceValid==='boolean'&&[s.x,s.y,s.pupilLeft,s.pupilRight].every(v=>v===null||finite(v));}
   function parseRecording(data){
-    if(!data||data.schema!=='donut-song/1'||!Array.isArray(data.samples)||!data.samples.length)throw Error('请选择 Donut Song 导出的、包含采样数据的 JSON 文件。');
-    if(data.samples.length>108000)throw Error('文件超过一小时的工作坊回放上限。');
-    if(data.samples.some(s=>Array.isArray(s.consumed)&&s.consumed.length!==ZONES.length))throw Error('此记录的桌垫布局不是八音版，请使用对应的旧版项目回放。');
+    if(!data||data.schema!=='donut-song/1'||!Array.isArray(data.samples)||!data.samples.length)throw Error('Choose a Donut MIDI / Donut Song JSON export containing samples.');
+    if(data.samples.length>108000)throw Error('File exceeds the one-hour replay limit.');
+    if(data.samples.some(s=>Array.isArray(s.consumed)&&s.consumed.length!==ZONES.length))throw Error('This recording uses another mat layout. Replay it with the matching older version.');
     let prev=-1;
     for(const s of data.samples){
-      if(!validSample(s)||s.t<prev||s.t<0||s.t>3600000||!['prepare','look','taste','after','end'].includes(s.phase)||!Array.isArray(s.consumed)||s.consumed.length!==ZONES.length||!s.consumed.every(v=>typeof v==='boolean')||!finite(s.baseline)||s.baseline<1||s.baseline>9)throw Error('回放文件的数据或时间顺序无效。');
+      if(!validSample(s)||s.t<prev||s.t<0||s.t>3600000||!['prepare','look','taste','after','end'].includes(s.phase)||!Array.isArray(s.consumed)||s.consumed.length!==ZONES.length||!s.consumed.every(v=>typeof v==='boolean')||!finite(s.baseline)||s.baseline<1||s.baseline>9)throw Error('Invalid replay data or timestamp order.');
       prev=s.t;
     }
     return data;

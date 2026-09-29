@@ -3,3 +3,6 @@
 .notes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.sample-row{border-top:1px solid var(--line);padding:12px 0}.sample-row input{max-width:100%;font-size:12px}.sample-row button{font-size:12px;padding:5px 8px}.sample-name{overflow-wrap:anywhere;font-size:12px}.food-button{font-size:9px;padding:3px 5px}#toast{z-index:500}
 
 .music-panel{margin:0 0 16px}.music-panel label{margin:6px 10px 6px 0}.music-panel p{font-size:12px;line-height:1.6}.music-panel input[type=number]{width:75px}.studio-heading{flex-wrap:wrap;gap:10px}.studio-docked .music-panel{padding:10px}
+
+/* English labels need wrapping rather than fixed-width truncation. */
+.studio-heading>div:last-child{display:flex;flex-wrap:wrap;gap:8px}.studio label{flex-wrap:wrap}.studio label select{max-width:100%}.studio-docked small{display:block}.notes label{overflow-wrap:anywhere}.food-button{white-space:nowrap}#stateChart{min-width:0}.panel p{line-height:1.6}.header-right{flex-wrap:wrap}.score-footer{flex-wrap:wrap}.signal-legend{flex-wrap:wrap}

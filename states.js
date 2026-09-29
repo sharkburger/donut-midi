@@ -1,18 +1,18 @@
 'use strict';
 // Artistic sound mappings; labels are participant reports, never diagnoses.
-const stateDefs={none:['未标记',[]],confusion:['困惑',[60,61]],focus:['专注',[72]],relax:['放松',[48,55,60]],stress:['压力',[48,48,48]]};
+const stateDefs={none:['Not reported',[]],confusion:['Confused',[60,61]],focus:['Focused',[72]],relax:['Relaxed',[48,55,60]],stress:['Stressed',[48,48,48]]};
 const statePatterns=new GazePatterns();
 let reportedState='none',stateSoundEnabled=true,patternSoundEnabled=false,stateNextSound=0,stateLastPattern='unknown',stateVoices=[];
 const statePanel=document.createElement('section');
 statePanel.className='panel';
-statePanel.innerHTML='<h2>感受与眼动</h2><p>自动显示眼动模式；感受由你标记，可共存的感受在本版中先选最明显的一种。</p><p data-pattern>信号不足</p><label>我的当前感受 <select id="reportedState">'+Object.entries(stateDefs).map(([id,[name]])=>`<option value="${id}">${name}</option>`).join('')+'</select></label><p>快捷键 1 困惑 · 2 专注 · 3 放松 · 4 压力 · 0 清除。标记保持至手动更改；这是自述，不是自动检测。</p><label><input id="stateSound" type="checkbox" checked>感受声部</label> <label><input id="patternSound" type="checkbox">眼动模式声部</label><p>持续停留不等于专注，频繁切换不等于困惑；放松和压力不会由当前眼动数据自动判断。声音是创作约定。</p>';
+statePanel.innerHTML='<h2>Self-report & gaze</h2><p>Gaze patterns are displayed automatically. Report your feelings yourself; if several coexist, choose the most salient for this version.</p><p data-pattern>Insufficient signal</p><label>My current feeling <select id="reportedState">'+Object.entries(stateDefs).map(([id,[name]])=>`<option value="${id}">${name}</option>`).join('')+'</select></label><p>Keys: 1 confused · 2 focused · 3 relaxed · 4 stressed · 0 clear. Your report stays until changed; it is not automatic detection.</p><label><input id="stateSound" type="checkbox" checked>Self-report voice</label> <label><input id="patternSound" type="checkbox">Gaze-pattern voice</label><p>Sustained dwell does not prove focus; frequent transitions do not prove confusion. Current gaze data does not automatically identify relaxation or stress. Sounds are creative choices.</p>';
 document.querySelector('aside').prepend(statePanel);
 let stateExpires=0;
 function setReportedState(id){
   reportedState=id;stateExpires=Infinity;stateNextSound=0;
   document.querySelector('#reportedState').value=id;
   log('self_report',{state:id,origin:'participant',expiresAfterMs:30000});
-  toast(id==='none'?'已清除感受标记':`自述：${stateDefs[id][0]}（手动保持）`);
+  toast(id==='none'?'Self-report cleared':`Self-report: ${stateDefs[id][0]} (held until changed)`);
 }
 document.querySelector('#reportedState').onchange=e=>setReportedState(e.target.value);
 document.querySelector('#stateSound').onchange=e=>{stateSoundEnabled=e.target.checked;stopStateSound();};
@@ -31,9 +31,9 @@ let stateDisplay='';
 function updateStates(now,zone,valid){
   const observation=statePatterns.update(now,zone,valid);
   if(reportedState!=='none'&&now>=stateExpires){reportedState='none';document.querySelector('#reportedState').value='none';log('self_report_expired');stopStateSound();}
-  stateDisplay=`眼动：${observation.label} · 停留 ${observation.seconds.toFixed(1)}s · 5秒切换 ${observation.switches} 次 ｜ 自述：${stateDefs[reportedState][0]}`;
+  stateDisplay=`Gaze: ${observation.label} · Dwell ${observation.seconds.toFixed(1)}s · Transitions / 5 s: ${observation.switches}  |  Self-report: ${stateDefs[reportedState][0]}`;
   statePanel.querySelector('[data-pattern]').textContent=stateDisplay;
-  document.querySelectorAll('[data-state-overlay]').forEach(el=>el.textContent=stateDisplay+' ｜ 1困惑 2专注 3放松 4压力 0清除');
+  document.querySelectorAll('[data-state-overlay]').forEach(el=>el.textContent=stateDisplay+'  |  1 confused 2 focused 3 relaxed 4 stressed 0 clear');
   if(observation.kind!==stateLastPattern){log('gaze_pattern',{kind:observation.kind,ruleVersion:'1',source});stateLastPattern=observation.kind;}
   if(typeof updateStudio==='function'){updateStudio(now,observation,valid);return;}
   if(!valid||!audioEnabled||!['look','after'].includes(phase)||document.hidden){stopStateSound();return;}

@@ -27,17 +27,17 @@ def worker(publish, stop, ip):
     while not stop.is_set():
         device=None
         try:
-            publish({'type':'status','message':'正在寻找 Neon；请打开 Companion，并使用同一局域网。'})
+            publish({'type':'status','message':'Searching for Neon. Open Companion and use the same local network.'})
             device=Device(address=ip,port=8080) if ip else discover_one_device(max_search_duration_seconds=10)
             if device is None:
                 stop.wait(3)
                 continue
             mapper=SurfaceMapper()
-            publish({'type':'status','message':'已发现 Neon。请佩戴眼镜，让桌垫四个标记全部可见。'})
+            publish({'type':'status','message':'Neon found. Wear the glasses and keep all four mat markers visible.'})
             while not stop.is_set():
                 pair=device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=2)
                 if pair is None:
-                    publish({'type':'status','message':'等待视频与注视数据；网页将暂停选音。'})
+                    publish({'type':'status','message':'Waiting for scene and gaze data; note selection is paused.'})
                     continue
                 frame,gaze=pair
                 point,count=mapper.map(frame.bgr_pixels,gaze.x,gaze.y)
@@ -49,7 +49,7 @@ def worker(publish, stop, ip):
                     'pupilRight':nullable(getattr(gaze,'pupil_diameter_right',None)),
                     'eyes':eye_poses(gaze)})
         except Exception as exc:
-            publish({'type':'status','message':f'Neon 连接中断：{type(exc).__name__}: {exc}。3 秒后重试。'})
+            publish({'type':'status','message':f'Neon disconnected: {type(exc).__name__}: {exc}. Retrying in 3 seconds.'})
             stop.wait(3)
         finally:
             if device is not None:
@@ -76,7 +76,7 @@ async def main(args):
     loop=asyncio.get_running_loop()
     queue=asyncio.Queue(maxsize=2)
     clients=set()
-    latest_status={'type':'status','message':'桥接已启动，等待 Neon。'}
+    latest_status={'type':'status','message':'Bridge started. Waiting for Neon.'}
     stop=threading.Event()
     def enqueue(packet):
         if queue.full():
@@ -114,7 +114,7 @@ async def main(args):
     async with serve(handler,'127.0.0.1',args.port,origins=origins,max_size=4096):
         thread=threading.Thread(target=worker,args=(publish,stop,args.ip),daemon=True)
         thread.start()
-        print(f'本机桥接：ws://127.0.0.1:{args.port}；Ctrl+C 退出。',flush=True)
+        print(f'Local bridge: ws://127.0.0.1:{args.port}; Ctrl+C to stop.',flush=True)
         try:
             await broadcast()
         finally:
@@ -129,4 +129,4 @@ if __name__=='__main__':
     try:
         asyncio.run(main(args))
     except KeyboardInterrupt:
-        print('桥接已停止。')
+        print('Bridge stopped.')

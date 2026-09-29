@@ -191,21 +191,21 @@
 <rect x="120" y="755" width="15" height="15" fill="black"/>
 <rect x="135" y="755" width="15" height="15" fill="black"/>
 <circle cx="222.0" cy="256.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="222.0" y="371.0" font-size="16">1 / 原味</text>
+<text x="222.0" y="371.0" font-size="16">1 / Original</text>
 <circle cx="474.0" cy="256.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="474.0" y="371.0" font-size="16">2 / 巧克力</text>
+<text x="474.0" y="371.0" font-size="16">2 / Chocolate</text>
 <circle cx="726.0" cy="256.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="726.0" y="371.0" font-size="16">3 / 草莓</text>
+<text x="726.0" y="371.0" font-size="16">3 / Strawberry</text>
 <circle cx="977.9999999999999" cy="256.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="977.9999999999999" y="371.0" font-size="16">4 / 抹茶</text>
+<text x="977.9999999999999" y="371.0" font-size="16">4 / Matcha</text>
 <circle cx="222.0" cy="520.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="222.0" y="635.0" font-size="16">5 / 蓝莓</text>
+<text x="222.0" y="635.0" font-size="16">5 / Blueberry</text>
 <circle cx="474.0" cy="520.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="474.0" y="635.0" font-size="16">6 / 柠檬</text>
+<text x="474.0" y="635.0" font-size="16">6 / Lemon</text>
 <circle cx="726.0" cy="520.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="726.0" y="635.0" font-size="16">7 / 焦糖</text>
+<text x="726.0" y="635.0" font-size="16">7 / Caramel</text>
 <circle cx="977.9999999999999" cy="520.0" r="99.60000000000001" fill="none" stroke="#bbb3a7" stroke-width="2"/>
-<text x="977.9999999999999" y="635.0" font-size="16">8 / 香草</text>
+<text x="977.9999999999999" y="635.0" font-size="16">8 / Vanilla</text>
 <rect x="240" y="688" width="720" height="72" rx="25" fill="none" stroke="#bbb3a7"/>
 <text x="600" y="732" font-size="18">REST</text>
 </g></svg>
