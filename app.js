@@ -70,6 +70,7 @@ function resetFood(){for(let i=0;i<3;i++)setConsumed(i,false);lastNoteZone=-1;se
 function receive(s){sample=s;sampleReceived=performance.now();}
 function disconnect(){if(ws){ws.onclose=null;ws.close();ws=null;}connectionState='未连接';}
 function switchSource(value){
+  if(typeof statePatterns!=='undefined')statePatterns.reset();
   if(recording)stopRecording();disconnect();source=value;sample=null;sampleReceived=0;lastPupilAt=0;pointer={x:null,y:null};calibrating=null;
   baseline=4;baselineReady=source==='simulate';smoothed=4;delta=0;trace=[];replayPlaying=false;instrument.stop();dwell.reset();setPhase('prepare');
   $('source').value=source;$('simControls').hidden=source!=='simulate';$('liveControls').hidden=source!=='live';$('replayControls').hidden=source!=='replay';
@@ -140,6 +141,7 @@ function update(now){
   instrument.update(amount);updateCalibration(now);
   const enabled=fresh&&sample.worn&&sample.surfaceValid&&['look','after'].includes(phase)&&audioEnabled&&!calibrating;
   const zone=enabled?zoneAt(sample.x,sample.y,lastZone):-1;lastZone=zone;
+  if(typeof updateStates==='function')updateStates(now,zone,!!(fresh&&sample.worn&&sample.surfaceValid)&&['look','after'].includes(phase));
   if(dwell.update(consumed[zone]?-1:zone,now,config.dwell,enabled))trigger(zone);
   if(fresh&&sample.surfaceValid&&sample.y>.86&&sample.y<.95&&phase!=='taste'&&instrument.voices.length)instrument.stop();
   // Stale or unworn live input must never leave a held sound playing indefinitely.
@@ -215,4 +217,5 @@ screenScoreButton.onclick=()=>{
   overlay.querySelectorAll('button')[0].onclick=()=>{clearInterval(timer);overlay.remove();};
   overlay.querySelectorAll('button')[1].onclick=()=>overlay.requestFullscreen();
   document.body.append(overlay);
+  const stateCaption=document.createElement('p');stateCaption.dataset.stateOverlay='';stateCaption.style.cssText='position:absolute;bottom:42px;left:50%;transform:translateX(-50%);background:white;font-size:12px;white-space:nowrap;color:black';overlay.append(stateCaption);
 };
