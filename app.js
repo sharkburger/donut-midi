@@ -209,13 +209,30 @@ screenScoreButton.textContent='屏幕桌垫 · 眼动演奏';
 screenScoreButton.style.cssText='position:fixed;bottom:12px;left:12px;z-index:100;padding:12px';
 document.body.append(screenScoreButton);
 screenScoreButton.onclick=()=>{
-  const overlay=document.createElement('div');
+  if(document.getElementById('screenScoreOverlay'))return;
+  const overlay=document.createElement('div');overlay.id='screenScoreOverlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:#ddd;display:flex;align-items:center;justify-content:center';
   overlay.innerHTML='<img src="monitor-mat.svg" alt="甜甜圈眼动乐谱" style="max-width:100%;max-height:100%;width:auto;height:auto"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:13px;background:white;padding:3px 10px;color:black" aria-live="polite"></div><button style="position:absolute;bottom:4px;right:4px">返回控制台</button><button style="position:absolute;bottom:4px;left:4px">全屏演奏</button>';
   const status=overlay.querySelector('div');
-  const timer=setInterval(()=>{const fresh=sample&&performance.now()-sampleReceived<500;status.textContent=!fresh?'等待眼动数据':`标记 ${sample.markerCount??0}/4 · ${!sample.worn?'未佩戴':!sample.surfaceValid?'尚未定位':lastZone<0?'请看甜甜圈':ZONES[lastZone].name} · 已触发 ${noteCount} 音`;},200);
-  overlay.querySelectorAll('button')[0].onclick=()=>{clearInterval(timer);overlay.remove();};
+  const gazeDot=document.createElement('span');
+  gazeDot.style.cssText='position:absolute;width:18px;height:18px;border:3px solid #007c91;border-radius:50%;background:#ffffff99;transform:translate(-50%,-50%);pointer-events:none;display:none;box-shadow:0 0 0 2px white';
+  overlay.append(gazeDot);
+  const timer=setInterval(()=>{
+    const fresh=sample&&performance.now()-sampleReceived<500;
+    const mapped=fresh&&sample.worn&&sample.surfaceValid&&Number.isFinite(sample.x)&&Number.isFinite(sample.y);
+    gazeDot.style.display=mapped&&sample.x>=0&&sample.x<=1&&sample.y>=0&&sample.y<=1?'block':'none';
+    if(mapped){const r=overlay.querySelector('img').getBoundingClientRect(),o=overlay.getBoundingClientRect();gazeDot.style.left=(r.left-o.left+sample.x*r.width)+'px';gazeDot.style.top=(r.top-o.top+sample.y*r.height)+'px';}
+    let reason=!fresh?'等待眼动数据':!sample.worn?'未佩戴':!sample.surfaceValid?'尚未定位：请让四角标记进入眼镜画面':!audioEnabled?'声音关闭，请点开启声音':calibrating?'正在采集参考值':!['look','after'].includes(phase)?'尚未进入演奏阶段':lastZone<0?'注视点在 AOI 外，请看甜甜圈':consumed[lastZone]?'此甜甜圈已标记吃掉，请返回控制台重新摆盘':dwell.fired?'已弹奏，请移开后再看':`停留 ${Math.round(dwell.progress*100)}%`;
+    status.textContent=`标记 ${fresh?sample.markerCount??0:0}/4 · ${reason} · AOI 已触发 ${noteCount} 音`;
+  },100);
+  const studioPanel=document.querySelector('.studio');
+  const studioHome=studioPanel?document.createComment('studio home'):null;
+  if(studioPanel)studioPanel.before(studioHome);
+  overlay.querySelectorAll('button')[0].onclick=()=>{clearInterval(timer);if(studioPanel&&studioHome){studioHome.replaceWith(studioPanel);studioPanel.classList.remove('studio-docked');overlay.style.gap='';}overlay.remove();};
   overlay.querySelectorAll('button')[1].onclick=()=>overlay.requestFullscreen();
   document.body.append(overlay);
+  const audioControl=document.createElement('button');audioControl.textContent=audioEnabled?'暂停声音':'开启声音';audioControl.style.cssText='position:absolute;bottom:4px;left:280px';overlay.append(audioControl);
+  audioControl.onclick=async()=>{await toggleAudio();if(audioEnabled&&!calibrating)setPhase('look');audioControl.textContent=audioEnabled?'暂停声音':'开启声音';};
+  if(studioPanel){const toggle=document.createElement('button');toggle.id='screenStudioToggle';toggle.textContent='显示眼睛与曲线';toggle.style.cssText='position:absolute;bottom:4px;left:120px';overlay.append(toggle);toggle.onclick=()=>{const docked=studioPanel.parentElement===overlay;if(docked){studioHome.after(studioPanel);studioPanel.classList.remove('studio-docked');overlay.querySelector('img').style.maxWidth='100%';toggle.textContent='显示眼睛与曲线';}else{overlay.append(studioPanel);studioPanel.classList.add('studio-docked');overlay.querySelector('img').style.maxWidth='56%';toggle.textContent='只看桌垫';}};}
   const stateCaption=document.createElement('p');stateCaption.dataset.stateOverlay='';stateCaption.style.cssText='position:absolute;bottom:42px;left:50%;transform:translateX(-50%);background:white;font-size:12px;white-space:nowrap;color:black';overlay.append(stateCaption);
 };

@@ -35,6 +35,7 @@ function updateStates(now,zone,valid){
   statePanel.querySelector('[data-pattern]').textContent=stateDisplay;
   document.querySelectorAll('[data-state-overlay]').forEach(el=>el.textContent=stateDisplay+' ｜ 1困惑 2专注 3放松 4压力 0清除');
   if(observation.kind!==stateLastPattern){log('gaze_pattern',{kind:observation.kind,ruleVersion:'1',source});stateLastPattern=observation.kind;}
+  if(typeof updateStudio==='function'){updateStudio(now,observation,valid);return;}
   if(!valid||!audioEnabled||!['look','after'].includes(phase)||document.hidden){stopStateSound();return;}
   if(now<stateNextSound)return;
   if(stateSoundEnabled&&reportedState!=='none'){playStateMotif(stateDefs[reportedState][1],reportedState);stateNextSound=now+8000;}

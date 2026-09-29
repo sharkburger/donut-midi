@@ -1,0 +1,4 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const {RegionCurve}=require('../curve.js');
+test('stable region triggers once, changing region retriggers',()=>{const c=new RegionCurve();let hits=[];for(let t=0;t<2000;t+=100){const r=c.update(t,.5);if(r.hit)hits.push(r.hit);}assert.deepEqual(hits,['relax']);for(let t=2000;t<5000;t+=100){const r=c.update(t,1.5);if(r.hit)hits.push(r.hit);}assert.deepEqual(hits,['relax','focus']);});
+test('missing input breaks curve and never generates relaxation',()=>{const c=new RegionCurve();c.update(0,2.5);assert.deepEqual(c.update(100,null),{value:null,hit:null});assert.equal(c.update(200,2.5).hit,null);assert.equal(c.update(800,2.5).hit,null);});
+test('disabled sound processing creates no events',()=>{const c=new RegionCurve();for(let t=0;t<3000;t+=100)assert.equal(c.update(t,3.5,false).hit,null);});

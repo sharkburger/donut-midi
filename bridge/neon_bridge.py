@@ -46,13 +46,30 @@ def worker(publish, stop, ip):
                     'x':point[0] if point else None,'y':point[1] if point else None,
                     'surfaceValid':point is not None,'markerCount':count,'worn':bool(gaze.worn),
                     'pupilLeft':nullable(getattr(gaze,'pupil_diameter_left',None)),
-                    'pupilRight':nullable(getattr(gaze,'pupil_diameter_right',None))})
+                    'pupilRight':nullable(getattr(gaze,'pupil_diameter_right',None)),
+                    'eyes':eye_poses(gaze)})
         except Exception as exc:
             publish({'type':'status','message':f'Neon 连接中断：{type(exc).__name__}: {exc}。3 秒后重试。'})
             stop.wait(3)
         finally:
             if device is not None:
                 device.close()
+
+
+def eye_poses(gaze):
+    """Only forward complete native Neon poses; never infer a pose from 2D gaze."""
+    result = {}
+    for side in ('left', 'right'):
+        center = [nullable(getattr(gaze, f'eyeball_center_{side}_{axis}', None)) for axis in 'xyz']
+        direction = [nullable(getattr(gaze, f'optical_axis_{side}_{axis}', None)) for axis in 'xyz']
+        if None in center or None in direction or sum(v*v for v in direction) < 1e-8:
+            result[side] = None
+            continue
+        result[side] = {'center': center, 'direction': direction,
+            'pupilDiameter': nullable(getattr(gaze, f'pupil_diameter_{side}', None)),
+            'aperture': nullable(getattr(gaze, f'eyelid_aperture_{side}', None)),
+            'provider': 'neon-native'}
+    return result
 
 
 async def main(args):

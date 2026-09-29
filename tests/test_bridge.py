@@ -14,6 +14,17 @@ from websockets.asyncio.client import connect
 from websockets.exceptions import InvalidStatus
 
 class BridgeTests(unittest.TestCase):
+    def test_eye_pose_requires_complete_finite_geometry(self):
+        self.assertEqual(bridge.eye_poses(SimpleNamespace()), {'left':None,'right':None})
+        values={f'eyeball_center_left_{a}':v for a,v in zip('xyz',[-31,2,4])}
+        values.update({f'optical_axis_left_{a}':v for a,v in zip('xyz',[0,0,1])})
+        values['pupil_diameter_left']=4.2
+        result=bridge.eye_poses(SimpleNamespace(**values))
+        self.assertEqual(result['left']['center'],[-31,2,4])
+        self.assertEqual(result['left']['provider'],'neon-native')
+        self.assertIsNone(result['right'])
+        values['optical_axis_left_x']=float('nan')
+        self.assertIsNone(bridge.eye_poses(SimpleNamespace(**values))['left'])
     def test_sdk_contract_and_missing_pupil(self):
         self.assertIn('timeout_seconds',inspect.signature(Device.receive_matched_scene_video_frame_and_gaze).parameters)
         self.assertIsNone(bridge.nullable(float('nan')))
