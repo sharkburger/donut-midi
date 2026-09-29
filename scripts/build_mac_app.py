@@ -50,7 +50,7 @@ def build(output, make_dmg=True):
             info = plistlib.load(f)
         info.update(CFBundleIdentifier='io.github.sharkburger.donut-midi-neon',
                     CFBundleDisplayName='Donut MIDI Neon', CFBundleName='Donut MIDI Neon',
-                    CFBundleShortVersionString='1.1.3', CFBundleVersion='5',
+                    CFBundleShortVersionString='1.1.4', CFBundleVersion='6',
                     CFBundleIconFile='DonutMIDI.icns', CFBundleIconName='DonutMIDI',
                     NSAppleEventsUsageDescription='Open Terminal to run the local Neon connector and show its status.')
         with plist_path.open('wb') as f:

@@ -14,7 +14,7 @@ from urllib.parse import urlsplit, parse_qs, urlencode
 import webbrowser
 
 PUBLIC_ORIGIN = 'https://sharkburger.github.io'
-PUBLIC_URL = PUBLIC_ORIGIN + '/donut-song/'
+PUBLIC_URL = PUBLIC_ORIGIN + '/donut-midi/'
 ROOT = Path(__file__).resolve().parents[1]
 # Explicit public assets; never serve source, session files or environment contents.
 ASSETS = {'index.html', 'style.css', 'core.js', 'app.js', 'patterns.js',
