@@ -4,7 +4,9 @@ A gaze-controlled, edible musical interface using Pupil Labs Neon, p5.js and Web
 
 **Public website:** https://sharkburger.github.io/donut-song/
 
-**Local connector download:** https://sharkburger.github.io/donut-song/downloads/donut-midi-connector.zip
+**Mac app download:** https://sharkburger.github.io/donut-song/downloads/Donut-MIDI-Neon.dmg
+
+**Windows / source ZIP:** https://sharkburger.github.io/donut-song/downloads/donut-midi-connector.zip
 
 ## Play without glasses
 
@@ -14,11 +16,11 @@ Use **Focus loop** for continuous accompaniment. Self-reports persist until chan
 
 ## Connect Neon
 
-Download and extract the connector. On macOS, open **Start Neon Connector.command**. Python 3.11–3.14 is required; first launch installs dependencies into a private environment. The phone and computer must be on the same Wi-Fi, with Companion open.
+On macOS, download the DMG, drag **Donut MIDI Neon.app** to Applications, then open it. Terminal starts automatically. Later launches only require opening the app. The first launch may require **System Settings → Privacy & Security → Open Anyway** and permission to control Terminal. Python 3.11–3.14 is required; first launch installs dependencies into a private environment. The phone and computer must be on the same Wi-Fi, with Companion open.
 
 The connector opens the public site with a fresh pairing code. Click **Connect local Neon**, allow local-network access if requested, then enable sound. Open the marked screen mat and keep all four AprilTags visible. If the browser blocks public-to-local access, use the **Local fallback** link printed by the connector. It serves the same English interface on your computer.
 
-Read the [online setup guide](https://sharkburger.github.io/donut-song/connector-guide.html) or [connector README](connector/README.md). This is a Python launcher package, not a signed app with an embedded runtime. The Windows launcher is included but has not been validated on Windows hardware.
+Read the [online setup guide](https://sharkburger.github.io/donut-song/connector-guide.html) or [connector README](connector/README.md). The Mac app is an ad-hoc-sealed launcher, not Developer ID-signed or notarized, and does not embed Python. It installs files and reusable dependencies under `~/Library/Application Support/Donut MIDI`. The source ZIP remains available. The Windows launcher is included but has not been validated on Windows hardware.
 
 To specify a phone or alternative port from the extracted folder:
 

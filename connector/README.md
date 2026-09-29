@@ -1,4 +1,8 @@
-# Donut MIDI Neon Connector 1.0
+# Donut MIDI Neon Connector
+
+For the Mac app, download https://sharkburger.github.io/donut-song/downloads/Donut-MIDI-Neon.dmg . Open the image, drag Donut MIDI Neon.app to Applications, and open it to start Terminal automatically. First launch may require Privacy & Security → Open Anyway and permission to control Terminal. Python is still required. Later launches reuse the environment in `~/Library/Application Support/Donut MIDI/runtime`.
+
+The instructions below describe the alternative source ZIP.
 
 A local Python launcher for https://sharkburger.github.io/donut-song/ .
 

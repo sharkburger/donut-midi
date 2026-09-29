@@ -12,7 +12,7 @@ def main():
     if not (3, 11) <= sys.version_info[:2] <= (3, 14):
         raise SystemExit('Install Python 3.11–3.14 from https://www.python.org/downloads/ and try again.')
     root = Path(__file__).resolve().parents[1]
-    env = root / '.connector-venv'
+    env = Path(os.environ.get('DONUT_MIDI_RUNTIME', str(root / '.connector-venv'))).expanduser().resolve()
     python = env / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
     requirements = root / 'connector/requirements.txt'
     expected = hashlib.sha256(requirements.read_bytes()).hexdigest()

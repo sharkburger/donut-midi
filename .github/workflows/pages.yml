@@ -11,7 +11,20 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  mac-launcher:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Mac app and disk image
+        run: python3 scripts/build_mac_app.py
+      - name: Verify Mac launcher
+        run: python3 scripts/verify_mac_app.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-launcher
+          path: dist/mac/*
   deploy:
+    needs: mac-launcher
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -32,6 +45,10 @@ jobs:
           cp vendor/p5.min.js vendor/p5-LICENSE.txt _site/vendor/
           python3 scripts/build_connector.py --output _site/downloads/donut-midi-connector.zip
           touch _site/.nojekyll
+      - uses: actions/download-artifact@v4
+        with:
+          name: mac-launcher
+          path: _site/downloads
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
