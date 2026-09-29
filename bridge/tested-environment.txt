@@ -26,8 +26,8 @@ pandas==3.0.6
 pathlib_abc==0.5.2
 propcache==0.5.4
 protobuf==7.36.2
-pupil-labs-neon-recording==1.0.1
-pupil-labs-realtime-api==1.6.2
+pupil-labs-neon-recording==2.1.6
+pupil-labs-realtime-api @ git+https://github.com/pupil-labs/pl-realtime-api.git@a9c36bd908be1b2050b0bc4cbf6d72402453d155
 pupil-labs-video==1.0.14
 pycares==5.0.1
 pycparser==3.0
@@ -40,6 +40,7 @@ questo==0.4.2
 rich==15.0.0
 scipy==1.18.1
 six==1.17.0
+sounddevice==0.5.6
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 universal_pathlib==0.3.10

@@ -1,5 +1,5 @@
-pupil-labs-realtime-api==1.6.2
+pupil-labs-realtime-api @ git+https://github.com/pupil-labs/pl-realtime-api.git@a9c36bd908be1b2050b0bc4cbf6d72402453d155
 opencv-contrib-python>=4.10,<5
 numpy==2.3.5
 websockets>=14,<16
-pupil-labs-neon-recording==1.0.1
+pupil-labs-neon-recording==2.1.6

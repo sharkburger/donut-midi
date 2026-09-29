@@ -200,3 +200,19 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){instrument
 window.addEventListener('beforeunload',e=>{if(recording||lastRecording){e.preventDefault();e.returnValue='';}});
 // Read-only state for workshop diagnostics and automated smoke checks.
 window.donutDebug=()=>({source,phase,consumed:[...consumed],baseline,baselineReady,delta,noteCount,config:structuredClone(config),recording:!!recording,replayPlaying,voiceCount:instrument.voices.length});
+
+// Keep the score and audio in the same visible document; hidden tabs pause playback.
+const screenScoreButton=document.createElement('button');
+screenScoreButton.textContent='屏幕桌垫 · 眼动演奏';
+screenScoreButton.style.cssText='position:fixed;bottom:12px;left:12px;z-index:100;padding:12px';
+document.body.append(screenScoreButton);
+screenScoreButton.onclick=()=>{
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:#ddd;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML='<img src="monitor-mat.svg" alt="甜甜圈眼动乐谱" style="max-width:100%;max-height:100%;width:auto;height:auto"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:13px;background:white;padding:3px 10px;color:black" aria-live="polite"></div><button style="position:absolute;bottom:4px;right:4px">返回控制台</button><button style="position:absolute;bottom:4px;left:4px">全屏演奏</button>';
+  const status=overlay.querySelector('div');
+  const timer=setInterval(()=>{const fresh=sample&&performance.now()-sampleReceived<500;status.textContent=!fresh?'等待眼动数据':`标记 ${sample.markerCount??0}/4 · ${!sample.worn?'未佩戴':!sample.surfaceValid?'尚未定位':lastZone<0?'请看甜甜圈':ZONES[lastZone].name} · 已触发 ${noteCount} 音`;},200);
+  overlay.querySelectorAll('button')[0].onclick=()=>{clearInterval(timer);overlay.remove();};
+  overlay.querySelectorAll('button')[1].onclick=()=>overlay.requestFullscreen();
+  document.body.append(overlay);
+};

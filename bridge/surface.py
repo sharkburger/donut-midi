@@ -33,11 +33,18 @@ class SurfaceMapper:
         src = np.concatenate([found[i] for i in range(4)]).astype(np.float32)
         dst = np.concatenate([marker_corners(i) for i in range(4)])
         # Fit mat->camera and measure residual in camera pixels.
-        H, mask = cv2.findHomography(dst, src, cv2.RANSAC, 4.0)
-        if H is None or mask is None or int(mask.sum()) < 14:
+        # Tag centers span the surface and tolerate local corner distortion on
+        # monitors better than requiring 14/16 corners within four pixels.
+        src_centers = src.reshape(4,4,2).mean(axis=1)
+        dst_centers = dst.reshape(4,4,2).mean(axis=1)
+        if not cv2.isContourConvex(src_centers.astype(np.float32)):
+            return None, 4
+        H = cv2.getPerspectiveTransform(dst_centers, src_centers)
+        if H is None:
             return None, 4
         projected = cv2.perspectiveTransform(dst.reshape(-1,1,2), H).reshape(-1,2)
-        if np.median(np.linalg.norm(projected-src, axis=1)) > 4:
+        tag_scale = np.median(np.linalg.norm(src.reshape(4,4,2)[:,1]-src.reshape(4,4,2)[:,0],axis=1))
+        if np.max(np.linalg.norm(projected-src, axis=1)) > max(8, tag_scale*.25):
             return None, 4
         if not np.isfinite([gaze_x,gaze_y]).all():
             return None, 4
