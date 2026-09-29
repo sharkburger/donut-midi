@@ -32,6 +32,9 @@ def build(output, make_dmg=True):
                                 '--out', str(target)], check=True, stdout=subprocess.DEVNULL)
         subprocess.run(['/usr/bin/iconutil', '-c', 'icns', str(iconset),
                         '-o', str(resources / 'DonutMIDI.icns')], check=True)
+        # AppleScript applets also name an icon via CFBundleIconName.
+        # Replace their legacy resource as well so every lookup resolves to the artwork.
+        shutil.copyfile(resources / 'DonutMIDI.icns', resources / 'applet.icns')
         payload = resources / 'payload'
         digest = hashlib.sha256()
         for name in FILES:
@@ -47,8 +50,8 @@ def build(output, make_dmg=True):
             info = plistlib.load(f)
         info.update(CFBundleIdentifier='io.github.sharkburger.donut-midi-neon',
                     CFBundleDisplayName='Donut MIDI Neon', CFBundleName='Donut MIDI Neon',
-                    CFBundleShortVersionString='1.1.2', CFBundleVersion='4',
-                    CFBundleIconFile='DonutMIDI.icns',
+                    CFBundleShortVersionString='1.1.3', CFBundleVersion='5',
+                    CFBundleIconFile='DonutMIDI.icns', CFBundleIconName='DonutMIDI',
                     NSAppleEventsUsageDescription='Open Terminal to run the local Neon connector and show its status.')
         with plist_path.open('wb') as f:
             plistlib.dump(info, f)

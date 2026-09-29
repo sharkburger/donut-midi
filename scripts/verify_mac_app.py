@@ -20,7 +20,9 @@ def verify():
             info = plistlib.load(f)
             assert info['NSAppleEventsUsageDescription']
             assert info['CFBundleIconFile'] == 'DonutMIDI.icns'
+            assert info['CFBundleIconName'] == 'DonutMIDI'
         assert (resources / 'DonutMIDI.icns').read_bytes()[:4] == b'icns'
+        assert (resources / 'applet.icns').read_bytes() == (resources / 'DonutMIDI.icns').read_bytes()
         for name in FILES:
             assert (resources / 'payload' / name).read_bytes() == (ROOT / name).read_bytes(), name
         support = directory / "Support path with spaces and 'quotes'"
