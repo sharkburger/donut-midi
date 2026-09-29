@@ -20,6 +20,18 @@ def build(output, make_dmg=True):
         subprocess.run(['/usr/bin/osacompile', '-o', str(app),
                         str(ROOT / 'connector/macos/launcher.applescript')], check=True)
         resources = app / 'Contents/Resources'
+        iconset = Path(temp) / 'DonutMIDI.iconset'
+        iconset.mkdir()
+        for size in (16, 32, 128, 256, 512):
+            for scale in (1, 2):
+                pixels = size * scale
+                suffix = '@2x' if scale == 2 else ''
+                target = iconset / f'icon_{size}x{size}{suffix}.png'
+                subprocess.run(['/usr/bin/sips', '-z', str(pixels), str(pixels),
+                                str(ROOT / 'connector/macos/assets/donut-eye.png'),
+                                '--out', str(target)], check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(['/usr/bin/iconutil', '-c', 'icns', str(iconset),
+                        '-o', str(resources / 'DonutMIDI.icns')], check=True)
         payload = resources / 'payload'
         digest = hashlib.sha256()
         for name in FILES:
@@ -35,7 +47,8 @@ def build(output, make_dmg=True):
             info = plistlib.load(f)
         info.update(CFBundleIdentifier='io.github.sharkburger.donut-midi-neon',
                     CFBundleDisplayName='Donut MIDI Neon', CFBundleName='Donut MIDI Neon',
-                    CFBundleShortVersionString='1.1.0', CFBundleVersion='2',
+                    CFBundleShortVersionString='1.1.1', CFBundleVersion='3',
+                    CFBundleIconFile='DonutMIDI.icns',
                     NSAppleEventsUsageDescription='Open Terminal to run the local Neon connector and show its status.')
         with plist_path.open('wb') as f:
             plistlib.dump(info, f)

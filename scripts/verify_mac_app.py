@@ -17,7 +17,10 @@ def verify():
         subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(app)], check=True)
         resources = app / 'Contents/Resources'
         with (app / 'Contents/Info.plist').open('rb') as f:
-            assert plistlib.load(f)['NSAppleEventsUsageDescription']
+            info = plistlib.load(f)
+            assert info['NSAppleEventsUsageDescription']
+            assert info['CFBundleIconFile'] == 'DonutMIDI.icns'
+        assert (resources / 'DonutMIDI.icns').read_bytes()[:4] == b'icns'
         for name in FILES:
             assert (resources / 'payload' / name).read_bytes() == (ROOT / name).read_bytes(), name
         support = directory / "Support path with spaces and 'quotes'"
