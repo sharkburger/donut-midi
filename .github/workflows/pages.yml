@@ -1,0 +1,38 @@
+name: Publish Donut MIDI
+on:
+  push:
+    branches: [aoi-cognitive-voices]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript
+        run: node --test tests/*.test.cjs
+      - name: Prepare public files
+        run: |
+          mkdir -p _site/vendor
+          cp index.html style.css core.js app.js patterns.js curve.js states.js studio.js pattern-view.js sample-controls.js midi-core.js music.js research-session.js public.js mat.svg monitor-mat.svg monitor.html _site/
+          cp vendor/p5.min.js vendor/p5-LICENSE.txt _site/vendor/
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4

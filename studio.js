@@ -1,4 +1,5 @@
 'use strict';
+const publicWebsite=!['localhost','127.0.0.1','[::1]'].includes(location.hostname);
 const studio=document.createElement('section');studio.className='studio';
 studio.innerHTML=`<div class="studio-heading"><div><small>BODY / SCORE</small><h2>眼睛与声音时间线</h2></div><div><button id="startDuet">▶ 开始双声部演奏</button><button id="connectEyes">连接真实眼睛</button><button id="studioDemo">开启合成演示</button></div></div>
 <div class="studio-grid"><section><h3>双眼三维姿态</h3><p id="eyeStatus">等待 Neon 三维眼球数据</p><div id="eyeScene"></div><p id="eyeNumbers"></p><small>Neon 原生中心与光轴；眼球球体半径 12 mm 为示意值。不是眼睛视频或 pye3d 拟合结果。拖动可旋转视角。</small></section>
@@ -10,13 +11,13 @@ const regionCurve=new RegionCurve(),curvePoints=[],soundPoints=[];
 const regionKeys=['relax','focus','stress','confusion'],regionNames=['放松','专注','压力','困惑'],regionColors=['#b4c6a5','#a8c6d9','#e4bc84','#c9acd0'];
 let studioDemo=false,studioLastPoint=0,studioLastNote=noteCount,studioLastSource=source,studioLastMode='report',eyeDemoTime=0;
 function resetStudio(){regionCurve.reset();curvePoints.length=0;soundPoints.length=0;studioLastPoint=0;stopStateSound();if(typeof resetEvidence==='function')resetEvidence();}
-function connectRealEyes(){studioDemo=false;$('studioDemo').textContent='开启合成演示';resetStudio();if(source!=='live')switchSource('live');connect();}
+function connectRealEyes(){if(publicWebsite){toast('真实眼动请使用本地完整版；公开版连接器正在准备中。');return;}studioDemo=false;$('studioDemo').textContent='开启合成演示';resetStudio();if(source!=='live')switchSource('live');connect();}
 $('connectEyes').onclick=connectRealEyes;
 async function startDuet(){
   if(calibrating){toast('请等待瞳孔参考值采集完成，再开始演奏。');return;}
   studioDemo=false;$('studioDemo').textContent='开启合成演示';
-  if(source!=='live')switchSource('live');
-  if(!ws||ws.readyState>1)connect();
+  if(publicWebsite){if(source!=='simulate')switchSource('simulate');}
+  else {if(source!=='live')switchSource('live');if(!ws||ws.readyState>1)connect();}
   if(!audioEnabled)await toggleAudio();
   else {try{await instrument.start();}catch(e){toast('声音无法启动：'+e.message);return;}}
   if(!audioEnabled||instrument.ctx?.state!=='running')return;
@@ -26,6 +27,7 @@ async function startDuet(){
   if(typeof startFocusBacking==='function')startFocusBacking();
   patternSoundEnabled=true;$('patternSound').checked=true;
   $('curveSound').checked=true;resetStudio();
+  if(publicWebsite){$('canvasHost').scrollIntoView({behavior:'smooth',block:'center'});toast('鼠标停留甜甜圈即可弹奏；专注伴奏为手动选择，非自动识别。');return;}
   screenScoreButton.click();
   if(!studio.classList.contains('studio-docked'))$('screenStudioToggle')?.click();
   toast('双声部已开启：注视甜甜圈触发音符，手动专注声部持续伴奏（非自动识别）。');

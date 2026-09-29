@@ -1,3 +1,9 @@
+## 公开网页
+
+访问 https://sharkburger.github.io/donut-song/ 。点击开启声音，用鼠标停留甜甜圈演奏；个人音频仅在当前浏览器处理。真实 Neon 连接目前仍使用本地版，公开版连接器尚未提供。状态曲线是自述／创作映射，不是经过验证的认知分类。
+
+GitHub Pages 由 `.github/workflows/pages.yml` 从 `aoi-cognitive-voices` 自动发布，发布前运行 JavaScript 测试，只上传列出的网页资源。Python 桥接和参与者记录不在站点发布目录内。
+
 # Donut MIDI
 
 当前版本：八个自然音键（C4–C5）、内置合成钢琴／拨弦吉他／合成器、自选音频、持续伴奏、Web MIDI 输出和研究跟奏采集。打开 `index.html?v=midi-1&neon=1`。详情见 [MIDI 使用说明](MIDI-GUIDE.md)。
