@@ -3,10 +3,79 @@
   const finite = x => typeof x === 'number' && Number.isFinite(x);
   const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
   const ZONES = [
-    {id:0,x:.23,y:.43,r:.12,name:'原味糖霜',note:60,color:'#dfaf68'},
-    {id:1,x:.50,y:.43,r:.12,name:'巧克力',note:64,color:'#715047'},
-    {id:2,x:.77,y:.43,r:.12,name:'草莓糖霜',note:67,color:'#dc8b96'}
-  ];
+  {
+    "id": 0,
+    "x": 0.185,
+    "y": 0.32,
+    "r": 0.083,
+    "name": "原味",
+    "note": 60,
+    "color": "#dfaf68"
+  },
+  {
+    "id": 1,
+    "x": 0.395,
+    "y": 0.32,
+    "r": 0.083,
+    "name": "巧克力",
+    "note": 62,
+    "color": "#715047"
+  },
+  {
+    "id": 2,
+    "x": 0.605,
+    "y": 0.32,
+    "r": 0.083,
+    "name": "草莓",
+    "note": 64,
+    "color": "#dc8b96"
+  },
+  {
+    "id": 3,
+    "x": 0.815,
+    "y": 0.32,
+    "r": 0.083,
+    "name": "抹茶",
+    "note": 65,
+    "color": "#8b9d69"
+  },
+  {
+    "id": 4,
+    "x": 0.185,
+    "y": 0.65,
+    "r": 0.083,
+    "name": "蓝莓",
+    "note": 67,
+    "color": "#9181ae"
+  },
+  {
+    "id": 5,
+    "x": 0.395,
+    "y": 0.65,
+    "r": 0.083,
+    "name": "柠檬",
+    "note": 69,
+    "color": "#ddc56b"
+  },
+  {
+    "id": 6,
+    "x": 0.605,
+    "y": 0.65,
+    "r": 0.083,
+    "name": "焦糖",
+    "note": 71,
+    "color": "#bc8254"
+  },
+  {
+    "id": 7,
+    "x": 0.815,
+    "y": 0.65,
+    "r": 0.083,
+    "name": "香草",
+    "note": 72,
+    "color": "#e8d6b1"
+  }
+];
   function zoneAt(x,y,previous=-1){
     if(!finite(x)||!finite(y)||x<0||x>1||y<0||y>1)return -1;
     // Positions use a 1.5:1 mat; distance measured in horizontal units.
@@ -32,9 +101,10 @@
   function parseRecording(data){
     if(!data||data.schema!=='donut-song/1'||!Array.isArray(data.samples)||!data.samples.length)throw Error('请选择 Donut Song 导出的、包含采样数据的 JSON 文件。');
     if(data.samples.length>108000)throw Error('文件超过一小时的工作坊回放上限。');
+    if(data.samples.some(s=>Array.isArray(s.consumed)&&s.consumed.length!==ZONES.length))throw Error('此记录的桌垫布局不是八音版，请使用对应的旧版项目回放。');
     let prev=-1;
     for(const s of data.samples){
-      if(!validSample(s)||s.t<prev||s.t<0||s.t>3600000||!['prepare','look','taste','after','end'].includes(s.phase)||!Array.isArray(s.consumed)||s.consumed.length!==3||!s.consumed.every(v=>typeof v==='boolean')||!finite(s.baseline)||s.baseline<1||s.baseline>9)throw Error('回放文件的数据或时间顺序无效。');
+      if(!validSample(s)||s.t<prev||s.t<0||s.t>3600000||!['prepare','look','taste','after','end'].includes(s.phase)||!Array.isArray(s.consumed)||s.consumed.length!==ZONES.length||!s.consumed.every(v=>typeof v==='boolean')||!finite(s.baseline)||s.baseline<1||s.baseline>9)throw Error('回放文件的数据或时间顺序无效。');
       prev=s.t;
     }
     return data;

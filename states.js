@@ -5,14 +5,14 @@ const statePatterns=new GazePatterns();
 let reportedState='none',stateSoundEnabled=true,patternSoundEnabled=false,stateNextSound=0,stateLastPattern='unknown',stateVoices=[];
 const statePanel=document.createElement('section');
 statePanel.className='panel';
-statePanel.innerHTML='<h2>感受与眼动</h2><p>自动显示眼动模式；感受由你标记，可共存的感受在本版中先选最明显的一种。</p><p data-pattern>信号不足</p><label>我的当前感受 <select id="reportedState">'+Object.entries(stateDefs).map(([id,[name]])=>`<option value="${id}">${name}</option>`).join('')+'</select></label><p>快捷键 1 困惑 · 2 专注 · 3 放松 · 4 压力 · 0 清除。标记 30 秒后自动过期。</p><label><input id="stateSound" type="checkbox" checked>感受声部</label> <label><input id="patternSound" type="checkbox">眼动模式声部</label><p>持续停留不等于专注，频繁切换不等于困惑；放松和压力不会由当前眼动数据自动判断。声音是创作约定。</p>';
+statePanel.innerHTML='<h2>感受与眼动</h2><p>自动显示眼动模式；感受由你标记，可共存的感受在本版中先选最明显的一种。</p><p data-pattern>信号不足</p><label>我的当前感受 <select id="reportedState">'+Object.entries(stateDefs).map(([id,[name]])=>`<option value="${id}">${name}</option>`).join('')+'</select></label><p>快捷键 1 困惑 · 2 专注 · 3 放松 · 4 压力 · 0 清除。标记保持至手动更改；这是自述，不是自动检测。</p><label><input id="stateSound" type="checkbox" checked>感受声部</label> <label><input id="patternSound" type="checkbox">眼动模式声部</label><p>持续停留不等于专注，频繁切换不等于困惑；放松和压力不会由当前眼动数据自动判断。声音是创作约定。</p>';
 document.querySelector('aside').prepend(statePanel);
 let stateExpires=0;
 function setReportedState(id){
-  reportedState=id;stateExpires=performance.now()+30000;stateNextSound=0;
+  reportedState=id;stateExpires=Infinity;stateNextSound=0;
   document.querySelector('#reportedState').value=id;
   log('self_report',{state:id,origin:'participant',expiresAfterMs:30000});
-  toast(id==='none'?'已清除感受标记':`自述：${stateDefs[id][0]}（30 秒）`);
+  toast(id==='none'?'已清除感受标记':`自述：${stateDefs[id][0]}（手动保持）`);
 }
 document.querySelector('#reportedState').onchange=e=>setReportedState(e.target.value);
 document.querySelector('#stateSound').onchange=e=>{stateSoundEnabled=e.target.checked;stopStateSound();};

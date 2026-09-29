@@ -9,7 +9,7 @@ const studioStyle=document.createElement('style');studioStyle.textContent=`.stud
 const regionCurve=new RegionCurve(),curvePoints=[],soundPoints=[];
 const regionKeys=['relax','focus','stress','confusion'],regionNames=['放松','专注','压力','困惑'],regionColors=['#b4c6a5','#a8c6d9','#e4bc84','#c9acd0'];
 let studioDemo=false,studioLastPoint=0,studioLastNote=noteCount,studioLastSource=source,studioLastMode='report',eyeDemoTime=0;
-function resetStudio(){regionCurve.reset();curvePoints.length=0;soundPoints.length=0;studioLastPoint=0;stopStateSound();}
+function resetStudio(){regionCurve.reset();curvePoints.length=0;soundPoints.length=0;studioLastPoint=0;stopStateSound();if(typeof resetEvidence==='function')resetEvidence();}
 function connectRealEyes(){studioDemo=false;$('studioDemo').textContent='开启合成演示';resetStudio();if(source!=='live')switchSource('live');connect();}
 $('connectEyes').onclick=connectRealEyes;
 async function startDuet(){
@@ -21,12 +21,14 @@ async function startDuet(){
   else {try{await instrument.start();}catch(e){toast('声音无法启动：'+e.message);return;}}
   if(!audioEnabled||instrument.ctx?.state!=='running')return;
   setPhase('look');
-  $('curveSource').value='activity';
+  $('curveSource').value='report';
+  setReportedState('focus');
+  if(typeof startFocusBacking==='function')startFocusBacking();
   patternSoundEnabled=true;$('patternSound').checked=true;
   $('curveSound').checked=true;resetStudio();
   screenScoreButton.click();
   if(!studio.classList.contains('studio-docked'))$('screenStudioToggle')?.click();
-  toast('双声部已开启：注视甜甜圈触发音符，停留与切换驱动声区曲线。');
+  toast('双声部已开启：注视甜甜圈触发音符，手动专注声部持续伴奏（非自动识别）。');
 }
 $('startDuet').onclick=startDuet;
 function performanceHint(now,mode){
@@ -50,18 +52,19 @@ function updateStudio(now,observation,valid){
   const mode=$('curveSource').value;if(source!==studioLastSource||mode!==studioLastMode){resetStudio();studioLastSource=source;studioLastMode=mode;}
   let target=null,origin='';
   if(studioDemo){target=1.999+1.85*Math.sin(now/3400);origin='合成演示 · 非真人数据';}
-  else if(mode==='report'){target=reportedState==='none'?null:regionKeys.indexOf(reportedState)+.5;origin='自述感受（30 秒有效）';}
+  else if(mode==='report'){target=reportedState==='none'?null:regionKeys.indexOf(reportedState)+.5;origin='自述感受（手动保持）';}
   else if(mode==='activity'){target=valid?clamp(.5+observation.switches*.65-Math.min(observation.seconds,3)*.1,0,3.99):null;origin='眼动活动 → 声区 · 创作映射，非状态识别';}
   else {const pv=sample&&pupil(sample);target=valid&&baselineReady&&pv!==null?clamp(1.5+delta*2,0,3.99):null;origin='瞳孔变化 → 声区 · 非状态识别';}
   const running=(studioDemo||valid)&&audioEnabled&&['look','after'].includes(phase)&&!calibrating&&!document.hidden;
   const out=regionCurve.update(now,target,running);
   if(!running||out.value===null)stopStateSound();
   const allowSound=$('curveSound').checked&&(mode==='report'?stateSoundEnabled:patternSoundEnabled||studioDemo);
-  if(out.hit&&allowSound){playStateMotif(stateDefs[out.hit][1],out.hit);const event={time:now,label:stateDefs[out.hit][0],value:out.value};soundPoints.push(event);log('region_sound',{region:out.hit,value:out.value,origin:studioDemo?'synthetic-demo':mode,ruleVersion:'curve-1'});}
+  if(out.hit&&allowSound&&!(typeof backingActive==='function'&&backingActive())){playStateMotif(stateDefs[out.hit][1],out.hit);const event={time:now,label:stateDefs[out.hit][0],value:out.value};soundPoints.push(event);log('region_sound',{region:out.hit,value:out.value,origin:studioDemo?'synthetic-demo':mode,ruleVersion:'curve-1'});}
   if(noteCount!==studioLastNote){studioLastNote=noteCount;soundPoints.push({time:now,label:noteLabel(config.notes[lastNoteZone]),value:null});}
   if(now-studioLastPoint>100){studioLastPoint=now;curvePoints.push({time:now,value:out.value});if(recording)log('curve_sample',{value:out.value,origin:studioDemo?'synthetic-demo':mode});}
   while(curvePoints.length&&now-curvePoints[0].time>30000)curvePoints.shift();while(soundPoints.length&&now-soundPoints[0].time>30000)soundPoints.shift();
   $('curveStatus').textContent=origin+(out.value===null?'':` ｜ 当前声区：${regionNames[Math.floor(out.value)]}`)+' ｜ '+performanceHint(now,mode)+(allowSound?'':' ｜ 声区声音关闭');
+  if(typeof updateEvidence==='function')updateEvidence(now,observation,valid,mode,out.value,target);
   drawStateChart(now);eyeDemoTime=now;
 }
 function drawStateChart(now){

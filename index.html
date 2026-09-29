@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Donut Song · 眼球与认知声区版</title><link rel="stylesheet" href="style.css?v=studio-2"><script src="vendor/p5.min.js?v=1.11.11" defer></script><script src="core.js?v=studio-2" defer></script><script src="app.js?v=studio-5" defer></script></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Donut MIDI · 眼球与认知声区版</title><link rel="stylesheet" href="style.css?v=midi-1"><script src="vendor/p5.min.js?v=1.11.11" defer></script><script src="core.js?v=midi-1" defer></script><script src="app.js?v=midi-1" defer></script></head>
 <body>
-<header><a class="brand" href="index.html?v=studio-2"><span class="brand-mark">◎</span><span>DONUT SONG<small>眼球与认知声区版 · STUDIO 02</small></span></a><div class="header-right"><span id="sourceBadge" class="badge">● 鼠标模拟</span><span id="recordBadge" class="badge">未记录</span><button id="projector" class="quiet">投影视图 ↗</button></div></header>
+<header><a class="brand" href="index.html?v=midi-1"><span class="brand-mark">◎</span><span>DONUT MIDI<small>眼球与认知声区版 · EIGHT KEYS</small></span></a><div class="header-right"><span id="sourceBadge" class="badge">● 鼠标模拟</span><span id="recordBadge" class="badge">未记录</span><button id="projector" class="quiet">投影视图 ↗</button></div></header>
 <main>
 <section class="intro"><div><p class="eyebrow">AN EDIBLE SCORE / WORKSHOP EDITION 01</p><h1>让目光选音。<em>让身体共鸣。</em></h1><p class="subtitle">看一会儿，听见一个音。品尝一口，让作品慢慢改变。</p></div><div class="intro-action"><button id="audioButton" class="primary">▶ 开启声音与演奏</button><small id="audioState">声音尚未开启 · 点击后开始</small></div></section>
 <div class="workspace">
 <section class="performance">
 <div class="stage-top"><span><b id="phaseLabel">01 / 准备</b><small id="phaseHint">先开启声音，再开始观看；模拟模式无需眼镜。</small></span><span id="inputHealth" class="health">模拟输入</span></div>
-<div id="canvasHost" role="group" aria-label="三种甜甜圈乐谱。鼠标在甜甜圈区域停留可发声，下面是休止区。"></div>
+<div id="canvasHost" role="group" aria-label="八种甜甜圈乐谱。鼠标在甜甜圈区域停留可发声，下面是休止区。"></div>
 <div class="score-footer"><span id="lastNote">等待第一个音符</span><span id="dwellStatus">停留 500 ms 触发一次</span><button id="resetFood" class="text-button">重新摆盘 ↻</button></div>
 <div class="phase-bar" aria-label="演奏阶段"><button data-phase="prepare" class="active">01 准备</button><button data-phase="look">02 观看</button><button data-phase="taste">03 品尝</button><button data-phase="after">04 余味</button><button data-phase="end">05 结束</button></div>
 <div class="signal-card"><div><p class="eyebrow">THE BODY'S VOICE</p><strong id="pupilDelta">+0.00 <small>mm</small></strong><p id="pupilExplain">相对参考值的变化 · 不代表情绪或喜好</p></div><div class="signal-right"><div id="traceHost"></div><div class="signal-legend"><span id="baselineLabel">模拟参考值 4.00 mm</span><span id="bodyStatus">身体调制开启</span></div></div></div>
@@ -20,7 +20,7 @@
 <div id="liveControls" hidden><label class="field">本机桥接地址<input id="wsUrl" value="ws://127.0.0.1:8765" aria-label="桥接地址"></label><button id="connect">连接 Neon 桥接</button><p id="connectionInfo" class="help">先启动 bridge/neon_bridge.py，再连接。</p></div>
 <div class="divider"></div>
 <label class="field">演奏配置<select id="preset"><option value="body">身体版 · 注视 + 瞳孔</option><option value="gaze">注视版 · 固定音色</option><option value="custom">自定版</option></select></label>
-<div class="notes" id="noteControls"></div>
+<p class="help">八个自然音 C4–C5；一个半音完整八度需要 12 个音级。MIDI 音符范围为 0–127。</p><div class="notes" id="noteControls"></div>
 <label class="range-label" for="dwell">停留时间 <output id="dwellValue">500 ms</output></label><input id="dwell" type="range" min="250" max="1500" step="50" value="500">
 <div class="toggle-row"><label for="bodyEnabled">让身体参与声音</label><input id="bodyEnabled" type="checkbox" checked></div>
 <label class="field">瞳孔改变什么<select id="mapping"><option value="brightness">音色明亮度</option><option value="vibrato">轻微颤音</option></select></label>
@@ -31,5 +31,5 @@
 </aside></div>
 <footer><span>LOOK · TASTE · LISTEN</span><p>这是身体数据的创作映射，不是认知状态识别。</p><span>Neon × p5.js</span></footer>
 </main><div id="toast" role="status" aria-live="polite"></div>
-<script src="patterns.js?v=studio-2"></script><script src="curve.js?v=studio-2"></script><script src="states.js?v=studio-2" defer></script><script src="studio.js?v=studio-4" defer></script>
-</body></html>
+<script src="patterns.js?v=midi-1"></script><script src="curve.js?v=midi-1"></script><script src="states.js?v=midi-1" defer></script><script src="studio.js?v=midi-1" defer></script>
+<script src="pattern-view.js?v=midi-1" defer></script><script src="sample-controls.js?v=midi-1" defer></script><script src="midi-core.js?v=midi-1" defer></script><script src="music.js?v=midi-1" defer></script><script src="research-session.js?v=midi-1" defer></script></body></html>
