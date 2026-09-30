@@ -23,7 +23,7 @@ $('panicMusic').onclick=()=>{audioEnabled=false;stateSoundscapes.stop(true);inst
 function backingActive(){return $('backingMode').value!=='off';}
 function localSoundEnabled(){return $('localSound').checked;}
 function stopBacking(){stateSoundscapes.stop();for(const v of loopVoices)instrument.release(v);loopVoices=[];loopNext=0;loopBeat=0;loopKind=null;midiOut.panic();}
-function loopEligible(){return audioEnabled&&instrument.ctx?.state==='running'&&!document.hidden&&!calibrating&&['look','after'].includes(phase)&&!(typeof researchRunning==='function'&&researchRunning())&&(source!=='live'||sample&&sample.worn&&($('backingTone').value==='soundscape'||sample.surfaceValid)&&performance.now()-sampleReceived<500)&&(source!=='replay'||replayPlaying);}
+function loopEligible(){return !(typeof gameModeActive==='function'&&gameModeActive())&&audioEnabled&&instrument.ctx?.state==='running'&&!document.hidden&&!calibrating&&['look','after'].includes(phase)&&!(typeof researchRunning==='function'&&researchRunning())&&(source!=='live'||sample&&sample.worn&&($('backingTone').value==='soundscape'||sample.surfaceValid)&&performance.now()-sampleReceived<500)&&(source!=='replay'||replayPlaying);}
 function tickBacking(){
  const mode=$('backingMode').value;if(mode==='off'||!loopEligible()){if(loopNext||loopVoices.length||stateSoundscapes.layer)stopBacking();backingGate.reset();$('loopStatus').textContent=mode==='off'?'AccompanimentOff':'Accompaniment idle: enable sound, use valid input and select Look or Aftertaste';return;}
  const raw=mode==='manual'?(reportedState==='none'?null:reportedState):(regionCurve.value===null?null:regionKeys[Math.floor(regionCurve.value)]);

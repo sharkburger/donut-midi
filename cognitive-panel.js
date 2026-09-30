@@ -15,6 +15,7 @@ const cognitiveStyle=document.createElement('style');cognitiveStyle.textContent=
 function onCognitiveNote(){cognitiveEvidence.event(performance.now(),'note');}
 let evidenceLastTick=null,evidenceLastFresh=null,evidenceDisconnected=false;
 $('evidenceBaseline').onclick=()=>{
+ if(typeof gameModeActive==='function'&&gameModeActive()){toast('Return to free play before starting a research session or reference capture.');return;}
  if(source!=='live'||studioDemo||!sample||!sample.worn||performance.now()-sampleReceived>=500){toast('Pair live Neon and wear the glasses first.');return;}
  if(!$('evidenceStable').checked||$('evidencePause').checked){toast('Confirm stable conditions and end the pause first.');return;}
  if(typeof researchRunning==='function'&&researchRunning()){toast('Finish the guided session before capturing this reference.');return;}

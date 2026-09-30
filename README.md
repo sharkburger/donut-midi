@@ -53,3 +53,17 @@ python3 scripts/build_connector.py
 Python bridge tests require bridge dependencies. Connector HTTP tests use only the Python standard library. Four corner markers use AprilTag 36h11, IDs 0–3. Eight AOIs are defined in `core.js`; regenerate mats with `bridge/generate_mat.py` after changing the layout.
 
 Browser audio needs a user gesture. Web MIDI availability and external DAW configuration vary. Online-to-local permissions vary across browsers; use the bundled local fallback when necessary.
+
+
+## Optional Game Mode
+
+Open **Performance Console → Game Mode**. Free play remains the default; **Return to free play** restores the previous audio/phase settings and keeps note mappings and uploaded audio clips. The eye view and evidence chart stay visible. Game visuals change the task and lighting, so entering the game invalidates an existing eye-reference capture.
+
+Choose Twinkle Twinkle, Mary Had a Little Lamb, or Frère Jacques. Press **Start / restart** for a four-beat count-in. Hold gaze on the gold target for 120 ms; the ring indicates remaining note time, green means hit, and the dashed ring previews the next target. Each score note can sound once, including repeated pitches without looking away. Missed notes stay silent. Melody onsets snap forward to a quarter-beat subdivision within the note window. Optional quiet beat/tonic accompaniment supports the melody; this is a guided rhythm prototype, not a full arrangement engine. Pause freezes score time. Losing live gaze, hiding the tab or leaving the console pauses the game until Resume. Test without hardware using **Connect → Mouse simulation**.
+
+**Local uploads:**
+- `.mid` / `.midi`: standard format 0/1, PPQN, constant tempo. Select a single monophonic track/channel. Chords, more than eight distinct pitches, missing note-offs and tempo changes are rejected with an explanation; percussion is ignored. Game tempo is adjustable (20–140 BPM) and notes shorter than 300 ms require a slower tempo. A loaded score starts at up to 100 BPM for gaze play.
+- `.txt`: whitespace-separated numbered notes, `1–8` = C4 D4 E4 F4 G4 A4 B4 C5; `0` = rest; `5:2` = two beats; `|` separates phrases. Example: `1 1 5 5 6 6 5:2 | 0 4 4 3 3 2 2 1:2`.
+- `.json`: use **Download score template**, then edit `title`, `bpm` and `notes` entries (`note`: MIDI integer or `null` for rest; `beats`: positive duration).
+
+The eight C-major pitches retain their familiar donut positions. Other pitch sets map in ascending order to up to eight donuts; labels show the game pitches, without changing free-play mappings. Uploads remain in browser memory and are lost on reload. Up to 1,000 notes and 2 MB per file; MP3/WAV transcription is not included. Game hit/miss counts are musical task outcomes, not cognitive diagnoses.

@@ -175,13 +175,14 @@ function update(now){
   if(pv!==null){smoothed+=(pv-smoothed)*(1-Math.exp(-dt/.35));lastPupilAt=now;}
   else if(now-lastPupilAt>250)smoothed+=(baseline-smoothed)*(1-Math.exp(-dt/.4));
   delta=baselineReady?smoothed-baseline:0;
-  const amount=config.body&&baselineReady?clamp(delta,-1,1)*config.strength:0;
+  const gameOn=typeof gameModeActive==='function'&&gameModeActive();
+  const amount=!gameOn&&config.body&&baselineReady?clamp(delta,-1,1)*config.strength:0;
   instrument.update(amount);updateCalibration(now);
-  const enabled=fresh&&sample.worn&&sample.surfaceValid&&['look','after'].includes(phase)&&audioEnabled&&!calibrating;
+  const enabled=!gameOn&&fresh&&sample.worn&&sample.surfaceValid&&['look','after'].includes(phase)&&audioEnabled&&!calibrating;
   const zone=enabled?zoneAt(sample.x,sample.y,lastZone):-1;lastZone=zone;
   if(typeof updateStates==='function')updateStates(now,zone,!!(fresh&&sample.worn&&sample.surfaceValid)&&['look','after'].includes(phase));
   if(dwell.update(consumed[zone]?-1:zone,now,config.dwell,enabled))trigger(zone);
-  if(fresh&&sample.surfaceValid&&sample.y>.86&&sample.y<.95&&phase!=='taste'&&instrument.voices.length)instrument.stop();
+  if(!gameOn&&fresh&&sample.surfaceValid&&sample.y>.86&&sample.y<.95&&phase!=='taste'&&instrument.voices.length)instrument.stop();
   // Stale or unworn live input must never leave a held sound playing indefinitely.
   if(source==='live'&&(!fresh||!sample.worn))instrument.stop();
   if(recording&&now-lastRecordSample>=33){lastRecordSample=now;const s=fresh?sample:{x:null,y:null,pupilLeft:null,pupilRight:null,worn:false,surfaceValid:false};recording.samples.push({t:now-recording.start,x:s.x,y:s.y,pupilLeft:s.pupilLeft,pupilRight:s.pupilRight,worn:s.worn,surfaceValid:s.surfaceValid,deviceTimestamp:s.deviceTimestamp??null,sceneGaze:s.sceneGaze??null,markerCount:s.markerCount??null,baseline,baselineReady,smoothed,delta,phase,consumed:[...consumed]});if(now-recording.start>=3600000){stopRecording();toast('One-hour recording limit reached. Please export.');}}

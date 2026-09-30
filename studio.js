@@ -58,7 +58,7 @@ function updateStudio(now,observation,valid){
   else if(mode==='report'){target=reportedState==='none'?null:regionKeys.indexOf(reportedState)+.5;origin='Self-report (held until changed)';}
   else if(mode==='activity'){target=valid?clamp(.5+observation.switches*.65-Math.min(observation.seconds,3)*.1,0,3.99):null;origin='Gaze activity → sound region · creative mapping, not classification';}
   else {const pv=sample&&pupil(sample);target=valid&&baselineReady&&pv!==null?clamp(1.5+delta*2,0,3.99):null;origin='Pupil change → sound region · not classification';}
-  const running=(studioDemo||valid)&&audioEnabled&&['look','after'].includes(phase)&&!calibrating&&!document.hidden;
+  const running=!(typeof gameModeActive==='function'&&gameModeActive())&&(studioDemo||valid)&&audioEnabled&&['look','after'].includes(phase)&&!calibrating&&!document.hidden;
   const out=regionCurve.update(now,target,running);
   if(!running||out.value===null)stopStateSound();
   const allowSound=$('curveSound').checked&&(mode==='report'?stateSoundEnabled:patternSoundEnabled||studioDemo);

@@ -21,6 +21,7 @@ function captureResearchSample(s,now){if(!researchRunning()||!researchBlock||res
 function onResearchNote(zone){if(!researchRunning()||!researchBlock||researchBlock.finished||researchBlock.kind==='baseline')return;const expected=researchBlock.notes[researchBlock.progress%researchBlock.notes.length],correct=zone===expected;researchBlock.events.push({t:performance.now()-researchBlock.start,zone,expected,correct});if(correct)researchBlock.progress++;}
 function beginResearchBlock(){const task=researchIndex<0?{kind:'baseline',notes:[]}:researchTasks[researchIndex];researchBlock={...task,start:performance.now(),duration:researchIndex<0?45000:30000,progress:0,samples:[],events:[],finished:false};researchSession.blocks.push(researchBlock);researchLastSample=null;$('researchRatings').hidden=true;for(const id of ['researchAttention','rating-confusion','rating-stuck','rating-effort'])$(id).value='';setPhase(researchIndex<0?'prepare':'look');}
 $('researchStart').onclick=async()=>{
+ if(typeof gameModeActive==='function'&&gameModeActive()){toast('Return to free play before starting a research session or reference capture.');return;}
  if(!$('researchConsent').checked){toast('Confirm consent to local collection first.');return;}
  if(recording||calibrating||source==='replay'||studioDemo){toast('Stop regular recording / calibration and the eye demo. Select live or mouse mode.');return;}
  if(researchRunning())return;
