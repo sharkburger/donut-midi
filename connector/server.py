@@ -17,7 +17,7 @@ PUBLIC_ORIGIN = 'https://sharkburger.github.io'
 PUBLIC_URL = PUBLIC_ORIGIN + '/donut-midi/'
 ROOT = Path(__file__).resolve().parents[1]
 # Explicit public assets; never serve source, session files or environment contents.
-ASSETS = {'cognitive-evidence.js', 'cognitive-panel.js', 'eye-canvas.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js', 'library/style.css', 'library/README.md', 'library/LICENSE', 'dashboard.js', 'dashboard.css', 'index.html', 'style.css', 'core.js', 'app.js', 'patterns.js',
+ASSETS = {'soundscapes.js', 'cognitive-evidence.js', 'cognitive-panel.js', 'eye-canvas.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js', 'library/style.css', 'library/README.md', 'library/LICENSE', 'dashboard.js', 'dashboard.css', 'index.html', 'style.css', 'core.js', 'app.js', 'patterns.js',
           'curve.js', 'states.js', 'studio.js', 'pattern-view.js', 'sample-controls.js',
           'midi-core.js', 'music.js', 'research-session.js', 'public.js', 'connector.js',
           'connector-client.js', 'mat.svg', 'monitor-mat.svg', 'monitor.html',

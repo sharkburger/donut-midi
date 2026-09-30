@@ -20,6 +20,7 @@ document.querySelector('#patternSound').onchange=e=>{patternSoundEnabled=e.targe
 document.addEventListener('keydown',e=>{if(e.repeat||['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;const id={0:'none',1:'confusion',2:'focus',3:'relax',4:'stress'}[e.key];if(id)setReportedState(id);});
 function stopStateSound(){for(const v of stateVoices){try{v.osc.stop();}catch{}v.osc.disconnect();v.gain.disconnect();}stateVoices=[];}
 function playStateMotif(notes,kind){
+  if(document.getElementById('backingTone')?.value==='soundscape')return;
   if(!instrument.ctx||instrument.ctx.state!=='running')return;
   const c=instrument.ctx,base=c.currentTime;
   notes.forEach((note,i)=>{const osc=c.createOscillator(),gain=c.createGain();const at=base+(kind==='relax'?0:i*.2),duration=kind==='relax'?2:kind==='focus'?1.3:.3;

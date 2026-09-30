@@ -33,3 +33,9 @@ macOS 可以在“音频 MIDI 设置”的 MIDI 工作室中启用 IAC 驱动，
 采集期间关闭伴奏与状态声、暂用统一合成钢琴；任务错误不自动变成困惑标签。参考段至少有 150 个有效瞳孔样本才设置参考值。保存样本、目标/实际音符与自述；导出 JSON 不含视频或音频。数据仅保留在当前浏览器内存，可随时结束并导出。切后台或切换输入会中断正在进行的区块。
 
 模型仍为 untrained；此版没有伪造模型权重或概率。原生 fixation/blink、高频采集、训练与跨会话验证尚未实现；现阶段的约 30 Hz 桌垫数据不能当作这些原生事件。具体研究方案见 `research/SCIENTIFIC-MODE.md`。
+
+## Continuous state soundscapes (2026-09-30)
+
+Sound → Accompaniment instrument defaults to Continuous state soundscapes. Self-report holds the selected sound until changed: relaxed = synthesized birds and breeze, focused = steady rain, stressed = low wind, confused = swirling filtered-water texture. These are procedural Web Audio textures, not field recordings or clinical signatures. State changes crossfade for about two seconds; Stop all sound stops immediately. AOI melody notes and uploaded melody clips remain independent. MIDI carries melody / optional musical accompaniment, not these environmental textures.
+
+The four sound buttons unlock audio and select a self-report. Creative gaze mapping remains an explicitly labeled alternative with an eight-second stability gate; no validated cognitive classifier is implied. Background tabs, research/reference capture, stale or unworn live input pause playback. Soundscapes do not require mat localization, so momentarily looking away from the score does not itself silence the chosen state.
