@@ -66,3 +66,9 @@
 
 
 2026-09-28 Donut MIDI 更新：已加入研究跟奏采集界面与导出，包括 45 秒参考、六段任务、四项独立自述。当前任务顺序固定，尚未平衡；仍使用原约 30 Hz 桥接，不是 fixation 原生事件采集。训练与独立验证未完成。
+
+2026-09-30 Evidence preview v1:
+- Main dashboard and full-screen console now default to two descriptive pupil traces (binocular mean in mm and relative change in percent). Self-report / creative sound regions remain a separate selectable view. Attention, confusion and stuck models remain untrained.
+- Live input only. Binocular measurements required for consistent reference comparisons. Personal reference: 30 s median, at least 100 timer observations and 80% valid coverage. 250 ms UI observations describe temporal availability, not independent native gaze samples. Rolling summary: up to 30 s median, at least 10 s usable history and 80% coverage. These engineering cutoffs are not cognitive thresholds; this is not IPA.
+- All note triggers have timeline marks. Playing effects are disclosed, NOT removed or causally isolated. No new automatic cognitive sounds. Manual condition confirmation does not measure luminance, accommodation or sound effects. Turning interpretation off/on, source changes, interruptions and long data gaps invalidate the reference. No persistence/export of this preview history; only a short in-memory window.
+- Guided collection uses three identical-melody visible/memory pairs, randomly ordered by pair and within pair. Order/protocol are exported. Randomization is not guaranteed sample-wide counterbalancing; practice, self-selected tempo, visual cue differences and sound remain confounds. Still requires a paced/controlled study and independent validation. A 30 s descriptive reference is separate from the guided session's 45 s baseline.
