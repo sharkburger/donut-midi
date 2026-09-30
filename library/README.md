@@ -1,4 +1,4 @@
-# p5.neon 0.1.0
+# p5.neon 0.2.0
 
 A small MIT-licensed JavaScript library for eye-driven p5.js sketches. This is an independent community project, not an official Pupil Labs or p5.js product.
 
@@ -84,3 +84,14 @@ Events: `sample` receives the latest sample; `status` and `error` receive a mess
 ## Distribution
 
 This release is a plain script exposing `NeonP5`, usable alongside p5 global or instance mode. It does not patch p5 prototypes and is not yet listed in the p5 library directory or npm. The tested p5 version is 1.11.11. `connector-client.js` is a required additional script for live input; mouse mode is standalone. See `example.js` for the full runnable sketch. No credentials or gaze data are uploaded to GitHub by the library.
+
+
+## Fullscreen console and editable templates (0.2)
+
+The [examples](https://sharkburger.github.io/donut-midi/library/) include a **Fullscreen console** button: the four-marker surface, two eyes and state timeline stay visible together. **Maximize mat** hides the two auxiliary views; **Show eyes & state** brings them back. Return or Escape exits the console. Audio controls remain accessible.
+
+Mouse mode shows explicitly labelled synthetic eyes. Live mode renders only fresh native 3D eye centers and directions, when supplied by Neon. Missing 3D data never becomes synthetic live data. The state timeline plots your selected self-report; its vertical regions are categories, not a ranked physiological measurement or classifier. Dwell events add markers to the timeline in music mode.
+
+Open the [editable p5 template](https://sharkburger.github.io/donut-midi/library/editor.html). Edit JavaScript, click Run, load a painting or music template, and download sketch.js. Draft code stays in browser localStorage; pairing codes are not saved. The preview runs in a sandboxed iframe; parent-page code handles the existing connector and forwards only samples. The iframe receives no pairing token. Stop removes the preview and its audio. Live preview shares the same origin permission requirement as the examples; use this published page with your existing connector. Browser local-network permissions still apply.
+
+This is our built-in p5.js editor, not editor.p5js.org. The editor provides `neon` and `MAT_URL`; downloaded sketch.js includes declarations suitable for the starter folder's library directory. Load p5.js and p5.neon.js before it. Live standalone sketches additionally need connector-client.js and a pairing UI. The supplied templates protect the corner markers; keep them clear when editing a live sketch. The sandbox intentionally blocks external network assets: use the included mat or data URLs in this first editor version.

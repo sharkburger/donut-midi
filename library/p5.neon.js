@@ -1,4 +1,4 @@
-/* p5.neon 0.1.0 — MIT. Load connector-client.js first for live Neon input. */
+/* p5.neon 0.2.0 — MIT. Load connector-client.js first for live Neon input. */
 (function(root){
   'use strict';
   class Neon {
@@ -50,6 +50,6 @@
     }
     dispose(){this.disconnect();this.listeners.clear();}
   }
-  Neon.VERSION='0.1.0';
+  Neon.VERSION='0.2.0';
   if(typeof module!=='undefined'&&module.exports)module.exports={Neon};else root.NeonP5=Neon;
 })(globalThis);

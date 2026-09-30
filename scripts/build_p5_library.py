@@ -3,12 +3,12 @@ from pathlib import Path
 import argparse
 import zipfile
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ['library/index.html', 'library/p5.neon.js', 'library/example.js',
+FILES = ['library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js',
          'library/style.css', 'library/README.md', 'library/LICENSE',
          'connector-client.js', 'monitor-mat.svg', 'vendor/p5.min.js', 'vendor/p5-LICENSE.txt']
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=ROOT / 'dist/p5-neon-0.1.0.zip')
+    parser.add_argument('--output', type=Path, default=ROOT / 'dist/p5-neon-0.2.0.zip')
     dest = parser.parse_args().output
     dest.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as archive:
