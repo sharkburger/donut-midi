@@ -8,5 +8,5 @@ if(publicWebsite){
   $('connect').textContent='Connect local Neon';
   $('connectionInfo').textContent='Start the connector and enter its pairing code in Connect your Neon.';
   $('startDuet').textContent='▶ Start melody + accompaniment';
-  $('eyeStatus').textContent='Public edition: start the synthetic eye demo to preview; not real eye data';
+  // Eye status is updated independently of WebGL by studio.js.
 }

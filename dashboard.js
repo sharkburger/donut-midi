@@ -83,4 +83,4 @@ function dashboardUpdate(){
  for(const b of feelingButtons.children)b.setAttribute('aria-pressed',String(b.dataset.feeling===reportedState));
 }
 setInterval(dashboardUpdate,150);openDashboardPanel('connect');fitScore();dashboardUpdate();
-const dashboardStyle=document.createElement('link');dashboardStyle.rel='stylesheet';dashboardStyle.href='dashboard.css?v=console-2';document.head.append(dashboardStyle);
+const dashboardStyle=document.createElement('link');dashboardStyle.rel='stylesheet';dashboardStyle.href='dashboard.css?v=eye-status-1';document.head.append(dashboardStyle);

@@ -20,3 +20,5 @@ html,body{height:100%;overflow:hidden}body{height:100dvh;display:grid;grid-templ
 .controller-mode .eye-card{grid-template-rows:24px minmax(0,1fr) auto}
 @media(max-width:1000px){.controller-mode .dashboard{grid-template-columns:minmax(0,1fr) 255px}}
 @media(max-height:650px){.controller-mode .overview{grid-template-rows:minmax(90px,.7fr) minmax(125px,1fr)}.controller-mode .eye-card{grid-template-rows:20px minmax(0,1fr)}.controller-mode #eyeStatus{display:none}.controller-mode .intro-action small{display:none}.controller-mode .rail-top{padding:7px}}
+
+.dashboard #eyeStatus{max-height:54px;overflow:auto}
