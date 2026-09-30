@@ -1,0 +1,4 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const {project}=require('../eye-canvas.js');
+const eye=(x,n=[0,0,1],d=4)=>({center:[x,0,20],direction:n,pupilDiameter:d});
+test('CPU eye projection fits both native centers inside small and large cards',()=>{for(const [w,h] of [[150,100],[300,200],[640,320]])for(const e of project({left:eye(-31),right:eye(31)},w,h)){assert.ok(e.x-e.r>=0&&e.x+e.r<=w);assert.ok(e.y-e.r>=0&&e.y+e.r<=h);}});
+test('native direction and pupil changes affect projection without inventing missing values',()=>{const a=project({left:eye(0,[0,0,1],4)},200,100)[0],b=project({left:eye(0,[1,0,1],6)},200,100)[0];assert.ok(b.n[0]>a.n[0]);assert.ok(b.pupil>a.pupil);assert.equal(project({left:eye(0,[0,0,1],null)},200,100)[0].pupil,null);assert.deepEqual(project(null,200,100),[]);assert.deepEqual(project({left:eye(0,[0,0,0])},200,100),[]);});

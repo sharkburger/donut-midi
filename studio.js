@@ -79,20 +79,28 @@ function drawStateChart(now){
  for(const p of soundPoints){const px=x(p.time),py=p.value===null?b:y(p.value);c.fillStyle=p.value===null?'#876b3f':'#722e77';c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill();c.fillText(p.label,Math.min(px+4,r-c.measureText(p.label).width),p.value===null?h-12:py-7);}
 }
 function validEye(eye){return eye&&Array.isArray(eye.center)&&eye.center.length===3&&eye.center.every(Number.isFinite)&&Array.isArray(eye.direction)&&eye.direction.length===3&&eye.direction.every(Number.isFinite)&&Math.hypot(...eye.direction)>.0001;}
-let eyeRendererState='starting';
+let eyeRendererState='starting',eyeCanvasView=null;
+const eyeRendererStarted=performance.now();
+function currentEyePoses(){
+ if(studioDemo)return {left:{center:[-31,0,0],direction:[.25*Math.sin(eyeDemoTime/1200),.15*Math.cos(eyeDemoTime/1400),1],pupilDiameter:4+Math.sin(eyeDemoTime/1000)},right:{center:[31,0,0],direction:[.25*Math.sin(eyeDemoTime/1200),.15*Math.cos(eyeDemoTime/1400),1],pupilDiameter:4+Math.sin(eyeDemoTime/1000)}};
+ return source==='live'&&sample&&sample.worn&&performance.now()-sampleReceived<500?sample.eyes:null;
+}
+
 function refreshEyeStatus(){
  const fresh=source==='live'&&sample&&performance.now()-sampleReceived<500;
  const count=fresh&&sample.worn?['left','right'].filter(side=>validEye(sample.eyes?.[side])).length:0;
  let message=studioDemo?'Synthetic demo · not real eye data':source!=='live'?'No live Neon input · pair this page to see real eyes':!fresh?'Waiting for fresh Neon samples':!sample.worn?'Neon reports glasses not worn':count?`Native Neon 3D data · ${count}/2 eyes`:'Live gaze received · 3D eye pose missing; check Compute eye state';
- if(eyeRendererState==='failed'||eyeRendererState==='lost')message+=' · 3D rendering unavailable: close unused 3D tabs and reload this page';
+ if(eyeCanvasView?.active)message+=' · compatible projection (no WebGL)';
+ else if(eyeRendererState==='failed'||eyeRendererState==='lost')message+=' · switching to compatible eye view';
  $('eyeStatus').textContent=message;
  $('eyeStatus').title=message;
 }
+eyeCanvasView=NeonEyeCanvas.mount($('eyeScene'),currentEyePoses,()=>eyeRendererState==='failed'||eyeRendererState==='lost'||(eyeRendererState==='starting'&&performance.now()-eyeRendererStarted>5000),refreshEyeStatus);
 setInterval(refreshEyeStatus,250);
 new p5(p=>{p.setup=()=>{const host=$('eyeScene');let renderer;try{renderer=p.createCanvas(Math.max(1,host.clientWidth),Math.max(1,host.clientHeight),p.WEBGL);renderer.parent(host);eyeRendererState='ready';}catch(error){eyeRendererState='failed';p.noLoop();refreshEyeStatus();return;}
- renderer.elt.addEventListener('webglcontextlost',()=>{eyeRendererState='lost';p.noLoop();refreshEyeStatus();});
+ renderer.elt.addEventListener('webglcontextlost',event=>{event.preventDefault();eyeRendererState='lost';p.noLoop();refreshEyeStatus();});
  renderer.elt.addEventListener('webglcontextrestored',()=>{eyeRendererState='ready';p.loop();});p.pixelDensity(1);p.camera(0,0,230,0,0,0,0,1,0);new ResizeObserver(()=>p.resizeCanvas(host.clientWidth,host.clientHeight)).observe(host);};p.draw=()=>{
- if(eyeRendererState==='failed'||eyeRendererState==='lost')return;
+ if(eyeRendererState==='failed'||eyeRendererState==='lost'||eyeCanvasView?.active)return;
  const halfHeight=p.height<180?40:75,halfWidth=halfHeight*p.width/p.height;p.background('#202a32');p.ortho(-halfWidth,halfWidth,-halfHeight,halfHeight,0,1000);p.orbitControl();p.ambientLight(130);p.directionalLight(255,245,225,-.3,-.3,-1);
  const fresh=source==='live'&&sample&&sample.worn&&performance.now()-sampleReceived<500;let eyes=fresh?sample.eyes:null;
  if(studioDemo)eyes={left:{center:[-31,0,0],direction:[.25*Math.sin(eyeDemoTime/1200),.15*Math.cos(eyeDemoTime/1400),1],pupilDiameter:4+Math.sin(eyeDemoTime/1000)},right:{center:[31,0,0],direction:[.25*Math.sin(eyeDemoTime/1200),.15*Math.cos(eyeDemoTime/1400),1],pupilDiameter:4+Math.sin(eyeDemoTime/1000)}};
