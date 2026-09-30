@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>p5.neon · Creative coding with your eyes</title><link rel="stylesheet" href="style.css?v=0.1.0"></head><body>
+<header><a href="../">← Donut MIDI</a><span>p5.neon · 0.1.0</span><a href="https://github.com/sharkburger/donut-midi/blob/aoi-cognitive-voices/library/README.md">API & quick start ↗</a></header>
+<main><section class="intro"><p class="eyebrow">A SMALL LIBRARY FOR EYE-DRIVEN SKETCHES</p><h1>Your eyes. Your sketch.</h1><p>Connect Neon or try your mouse. Build with gaze coordinates and dwell events.</p></section>
+<div class="layout"><section class="stage"><div class="tabs"><button data-mode="paint" aria-pressed="true">01 · Gaze painting</button><button data-mode="music" aria-pressed="false">02 · Dwell instrument</button></div><div id="canvas"></div><div class="readout"><span id="gaze">Move over the canvas</span><span id="event">Mouse simulation · no biometric data</span></div></section>
+<aside><h2>Input</h2><a href="../downloads/p5-neon-0.1.0.zip">Download starter ZIP ↓</a><label>Pairing code<input id="code" type="password" autocomplete="off" placeholder="Code from your running connector"></label><label>Connector port<input id="port" type="number" value="8766" min="1024" max="65535"></label><div class="row"><button id="connect">Connect Neon</button><button id="mouse">Use mouse</button></div><p id="status" role="status">Mouse simulation. No connection has been requested.</p><button id="audio">Enable sound</button><button id="clear">Clear drawing</button><p>Keep all four AprilTags visible. Coordinates refer to this marked surface, not your whole monitor.</p><p>Pupil size is optional. Missing data is never replaced by a synthetic value. This library does not classify mental states.</p><details><summary>Start your own sketch</summary><p>Load p5.js, connector-client.js and p5.neon.js. Call neon.update() in draw().</p><pre>const neon = new NeonP5();
+// setup():
+neon.useMouse(canvas);
+// draw():
+const gaze = neon.update();
+if (gaze) circle(
+  gaze.x * width,
+  gaze.y * height, 20);</pre><a href="example.js">View this sketch</a> · <a href="p5.neon.js" download>Download library</a></details><a href="../?v=console-2">Open full Donut MIDI ↗</a><p class="small">The full instrument remains a separate app; it has not been migrated to this library yet.</p></aside></div></main>
+<script src="../vendor/p5.min.js"></script><script src="../connector-client.js"></script><script src="p5.neon.js?v=0.1.0"></script><script src="example.js?v=0.1.0"></script></body></html>
