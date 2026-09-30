@@ -6,7 +6,7 @@ const phaseBar=document.querySelector('.phase-bar'),bodySignal=document.querySel
 const introAudio=document.querySelector('.intro-action'),publicNotice=document.querySelector('[aria-label="Public edition"]');
 const eyes=$('eyeScene').parentElement,curve=$('stateChart').parentElement;
 const dash=document.createElement('main');dash.className='dashboard';
-dash.innerHTML=`<div class="visuals"><div class="overview"><section class="eye-card dash-card"></section><section class="curve-card dash-card"></section></div><section class="score-card dash-card"><div class="score-heading"><div><span class="eyebrow">THE INSTRUMENT</span><h2>Eight donuts. Your melody.</h2></div><span id="scoreMode">Mouse · dwell to play</span></div><div id="scoreViewport"><div id="scoreFit"></div></div><div class="score-bottom"></div></section></div><aside class="control-rail"><div class="rail-top"><span class="eyebrow">CONTROL ROOM</span><div id="quickAudio"></div><button id="fullController">⛶ Fullscreen controller</button></div><nav class="rail-tabs" aria-label="Control panels"></nav><div class="rail-scroll"></div></aside><div class="dashboard-caption">Gaze chooses notes · state voices use self-report or creative mappings, not cognitive diagnosis.</div>`;
+dash.innerHTML=`<div class="visuals"><div class="overview"><section class="eye-card dash-card"></section><section class="curve-card dash-card"></section></div><section class="score-card dash-card"><div class="score-heading"><div><span class="eyebrow">THE INSTRUMENT</span><h2>Eight donuts. Your melody.</h2></div><span id="scoreMode">Mouse · dwell to play</span></div><div id="scoreViewport"><div id="scoreFit"></div></div><div class="score-bottom"></div></section></div><aside class="control-rail"><div class="rail-top"><span class="eyebrow">CONTROL ROOM</span><div id="quickAudio"></div><button id="showMarkerMat" aria-pressed="false">Show marker mat</button><button id="fullController">⛶ Open performance console</button></div><nav class="rail-tabs" aria-label="Control panels"></nav><div class="rail-scroll"></div></aside><div class="dashboard-caption">Gaze chooses notes · state voices use self-report or creative mappings, not cognitive diagnosis.</div>`;
 originalMain.after(dash);
 const eyeCard=dash.querySelector('.eye-card'),curveCard=dash.querySelector('.curve-card');
 eyeCard.innerHTML='<div class="card-heading"><h2>Eyes</h2><span>NEON LIVE</span></div>';
@@ -48,27 +48,32 @@ panels.signals.append(curveSettings,bodySignal,evidence);
 panels.research.append(researchPanel,recordSettings);
 if(publicNotice)panels.help.append(publicNotice);
 const eyeHelp=document.createElement('section');eyeHelp.className='panel';eyeHelp.innerHTML='<h2>Eye visualization</h2>';eyeHelp.append(...eyes.querySelectorAll('small'));panels.help.append(eyeHelp,$('studioDemo'));
-const usage=document.createElement('section');usage.className='panel';usage.innerHTML='<h2>Quick start</h2><p>Pair Neon, enable sound, then look at a donut. All four markers must be visible. Without glasses, select Mouse simulation under Connect.</p><p>Use Fullscreen controller to enlarge the score. Press Escape to return. Detailed controls scroll inside this panel; the main instrument stays in place.</p><a href="connector-guide.html" target="_blank" rel="noopener">Connection guide ↗</a>';panels.help.prepend(usage);
+const usage=document.createElement('section');usage.className='panel';usage.innerHTML='<h2>Quick start</h2><p>Pair Neon, enable sound, then look at a donut. All four markers must be visible. Without glasses, select Mouse simulation under Connect.</p><p>Use Open performance console for the marker mat, eyes and state curve together. Press Escape to return. Detailed controls scroll inside this panel; the main instrument stays in place.</p><a href="connector-guide.html" target="_blank" rel="noopener">Connection guide ↗</a>';panels.help.prepend(usage);
 // Retain obsolete containers (and their script references) out of view.
 originalMain.hidden=true;document.querySelector('header').classList.add('dashboard-header');
 const headerActions=document.querySelector('.header-right');$('projector').hidden=true;headerActions.append($('connectEyes'));$('connectEyes').textContent='Pair Neon';$('connectEyes').onclick=()=>{if(document.body.classList.contains('controller-mode'))toggleController(false);openDashboardPanel('connect');$('pairCode').focus();};
 screenScoreButton.hidden=true;
-let controllerFullscreenRequested=false;
+let controllerFullscreenRequested=false,showMarkerMat=false;
+$('showMarkerMat').onclick=()=>{showMarkerMat=!showMarkerMat;dashboardUpdate();};
 async function toggleController(force){
- const enable=force??!document.body.classList.contains('controller-mode');document.body.classList.toggle('controller-mode',enable);$('fullController').textContent=enable?'↙ Return to dashboard':'⛶ Fullscreen controller';
+ const enable=force??!document.body.classList.contains('controller-mode');document.body.classList.toggle('controller-mode',enable);$('fullController').textContent=enable?'↙ Return to dashboard':'⛶ Open performance console';
  if(enable){controllerFullscreenRequested=true;try{await document.documentElement.requestFullscreen();}catch{controllerFullscreenRequested=false;}}
  else if(document.fullscreenElement){controllerFullscreenRequested=false;await document.exitFullscreen();}
- requestAnimationFrame(fitScore);
+ dashboardUpdate();requestAnimationFrame(fitScore);
 }
 $('fullController').onclick=()=>toggleController();
 screenScoreButton.onclick=()=>toggleController(true);
-document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&controllerFullscreenRequested){controllerFullscreenRequested=false;document.body.classList.remove('controller-mode');$('fullController').textContent='⛶ Fullscreen controller';}fitScore();});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&controllerFullscreenRequested){controllerFullscreenRequested=false;document.body.classList.remove('controller-mode');$('fullController').textContent='⛶ Open performance console';}dashboardUpdate();fitScore();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('controller-mode'))toggleController(false);});
 function fitScore(){const r=$('scoreViewport').getBoundingClientRect();const w=Math.max(1,Math.min(r.width,r.height*1.5));fit.style.width=w+'px';fit.style.height=w/1.5+'px';}
 new ResizeObserver(fitScore).observe($('scoreViewport'));
 function dashboardUpdate(){
  const live=source==='live',fresh=sample&&performance.now()-sampleReceived<500;
- mat.hidden=!live;canvasHost.style.visibility=live?'hidden':'visible';
+ const showMat=live||showMarkerMat||document.body.classList.contains('controller-mode');
+ mat.hidden=!showMat;canvasHost.style.opacity=showMat?'0':'1';
+ $('showMarkerMat').textContent=showMat?'Marker mat visible':'Show marker mat';
+ $('showMarkerMat').setAttribute('aria-pressed',String(showMat));
+ $('showMarkerMat').disabled=live;
  const valid=live&&fresh&&sample.worn&&sample.surfaceValid&&Number.isFinite(sample.x)&&Number.isFinite(sample.y);
  dot.hidden=!valid||sample.x<0||sample.x>1||sample.y<0||sample.y>1;
  if(!dot.hidden){dot.style.left=sample.x*100+'%';dot.style.top=sample.y*100+'%';}
@@ -78,4 +83,4 @@ function dashboardUpdate(){
  for(const b of feelingButtons.children)b.setAttribute('aria-pressed',String(b.dataset.feeling===reportedState));
 }
 setInterval(dashboardUpdate,150);openDashboardPanel('connect');fitScore();dashboardUpdate();
-const dashboardStyle=document.createElement('link');dashboardStyle.rel='stylesheet';dashboardStyle.href='dashboard.css?v=dashboard-1';document.head.append(dashboardStyle);
+const dashboardStyle=document.createElement('link');dashboardStyle.rel='stylesheet';dashboardStyle.href='dashboard.css?v=console-2';document.head.append(dashboardStyle);
