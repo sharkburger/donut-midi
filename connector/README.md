@@ -33,3 +33,6 @@ Only fresh samples (<500 ms) are delivered. The browser ignores repeat sequence 
 ## Distribution
 
 This is a source/launcher package, not a signed native app and not a bundled Python interpreter. Python and first-run downloads are prerequisites. The macOS path is the initial target. See `connector-guide.html` for troubleshooting.
+
+## Local study storage (1.3)
+Participant tests require explicit consent and Start in the webpage. Samples and self-reports then persist in SQLite, outside the app release folder. On macOS: `~/Library/Application Support/Donut MIDI/data/study.sqlite3`. Use Research to export all or individual CSV packages. No video or cloud upload. Updating the app preserves this data. Close the previous connector and reopen the updated app to enable the new endpoints.

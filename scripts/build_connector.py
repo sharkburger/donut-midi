@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / 'connector'))
 from server import ASSETS
 
 FILES = sorted(ASSETS | {'Start Neon Connector.command', 'Start Neon Connector.bat',
-    'connector/server.py', 'connector/launch.py', 'connector/requirements.txt',
+    'connector/study_store.py', 'connector/server.py', 'connector/launch.py', 'connector/requirements.txt',
     'connector/README.md', 'bridge/neon_bridge.py', 'bridge/surface.py'})
 
 

@@ -15,7 +15,7 @@ const dwell=new Dwell();
 let toastTimer;
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),4000);}
 function snapshot(){return {phase,consumed:[...consumed],baseline,baselineReady,config:structuredClone(config),source};}
-function log(type,payload={}){if(recording)recording.events.push({t:performance.now()-recording.start,type,...payload});}
+function log(type,payload={}){if(typeof captureStudyEvent==='function')captureStudyEvent(type,payload);if(recording)recording.events.push({t:performance.now()-recording.start,type,...payload});}
 function mark(){eventCount++;log('marker',{number:eventCount});toast(recording?`Moment recorded #${eventCount}`:'Recording is off; this marker will not be saved.');}
 class Instrument{
   constructor(){this.ctx=null;this.voices=[];this.hold=null;this.samples=new Map();this.loads=new Map();}
@@ -142,6 +142,7 @@ function updateCalibration(now){
     baseline=values[Math.floor(values.length/2)];smoothed=baseline;delta=0;baselineReady=true;$('calibrationInfo').textContent=` baseline ${baseline.toFixed(2)} mm · Ready to look and play.`;toast('Baseline ready.');}
 }
 function recordStart(){
+  if(typeof studyRecorder!=='undefined'&&studyRecorder){toast('Finish the participant test before starting another recording.');return;}
   if(recording){stopRecording();return;}
   if(!$('recordConsent').checked){toast('Explain the recording purpose and confirm consent first.');return;}
   if(source==='replay'){toast('Replay does not create new participant recordings. Select mouse or live mode.');return;}

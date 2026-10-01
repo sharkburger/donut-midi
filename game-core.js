@@ -60,7 +60,7 @@
  }
  class PhraseGame{
   start(s,bpm,now,{prepMs=350,dwellMs=400,automatic=false,route='practice',random=Math.random}={}){
-   this.score=s;this.blocks=routeBlocks(phrases(s),route,random);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.queued=false;this.resetDwell();
+   this.routeMode=route;this.score=s;this.blocks=routeBlocks(phrases(s),route,random);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.queued=false;this.resetDwell();
   }
   resetDwell(){this.dwell=0;this.last=null;this.lastGood=-Infinity;this.wasTarget=false;}
   pause(now){if(this.pausedAt===null&&!this.done){this.pausedAt=now;this.resetDwell();}}
