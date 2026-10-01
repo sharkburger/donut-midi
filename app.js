@@ -169,6 +169,7 @@ function trigger(zone){if(typeof onGazeArtNote==='function')onGazeArtNote(zone);
 function noteLabel(midi){return ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][midi%12]+(Math.floor(midi/12)-1);}
 function update(now){
   const dt=Math.min((now-lastFrame)/1000,.1);lastFrame=now;
+  if(source==='simulate'&&typeof gameModeActive==='function'&&gameModeActive())pointer=gameMousePoint();
   if(source==='simulate')receive({x:pointer.x,y:pointer.y,pupilLeft:+$('simPupil').value,pupilRight:+$('simPupil').value,worn:true,surfaceValid:pointer.x!==null,source:'simulate'});
   if(source==='replay')tickReplay(now);
   const fresh=sample&&now-sampleReceived<500&&(source!=='replay'||replayPlaying);const pv=fresh?pupil(sample):null;

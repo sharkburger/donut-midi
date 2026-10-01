@@ -30,7 +30,7 @@ test('MIDI rejects truncation, changing tempo and unsupported timing; marks chor
 
 for(const song of builtinScores())test(song.title+': complete every phrase with slow gaze, a blink and delayed acquisition',()=>{
  const blocks=phrases(song);assert.deepEqual(blocks.flatMap(b=>b.events.map(e=>[e.midi,b.start+e.start,b.start+e.end])),song.events.map(e=>[e.midi,e.start,e.end]));
- const g=new PhraseGame();g.start(song,60,0);let launched=[],scheduled=[],scheduler=null,waitingSince=0;
+ const g=new PhraseGame();g.start(song,60,0,{prepMs:2000,dwellMs:600});let launched=[],scheduled=[],scheduler=null,waitingSince=0;
  for(let now=0;now<240000&&!g.done;now+=25){
   // Wait another 1.5 s after the preparation time; one 100 ms blink per dwell.
   const waitAge=now-g.readyAt;const valid=g.phase==='playing'?false:waitAge>=1500&&!(waitAge>=1800&&waitAge<1900);
@@ -40,9 +40,9 @@ for(const song of builtinScores())test(song.title+': complete every phrase with 
  }
  assert.equal(g.done,true);assert.equal(g.completed,blocks.length);assert.deepEqual(launched,blocks.map(b=>b.index));assert.deepEqual(scheduled,song.events.map(e=>e.midi));
 });
-test('Twinkle has six phrases, Mary four, Frère Jacques eight; pitch does not choose target',()=>{
- assert.deepEqual(builtinScores().map(s=>phrases(s).length),[6,4,8]);assert.equal(phrases(builtinScores()[0])[0].events.length,7);
- assert.deepEqual(phrases(builtinScores()[2]).map(p=>p.zone),[0,1,2,3,7,6,5,4]);
+test('Built-ins use authored variable-length motifs; pitch does not choose target',()=>{
+ assert.deepEqual(builtinScores().map(s=>phrases(s).length),[13,9,9]);assert.equal(phrases(builtinScores()[0])[0].events.length,4);
+ assert.deepEqual(phrases(builtinScores()[2]).slice(0,8).map(p=>p.zone),[0,1,2,3,7,6,5,4]);
 });
 test('waiting has no timeout; lost tracking recovers without a manual pause or skipped phrase',()=>{
  const g=new PhraseGame();g.start(textScore('1 2 | 3 4'),60,0);g.update(100000,-1,false);assert.equal(g.index,0);assert.equal(g.phase,'prepare');
@@ -63,3 +63,21 @@ test('MIDI grouping keeps every note and sustained duration; more than eight pit
 });
 
 test('explicit rest-only phrases are retained as silence without requiring an empty target',()=>{const s=textScore('0:2 | 1 | 0:4 | 2 | 0:2');const p=phrases(s);assert.equal(p.length,2);assert.equal(p.reduce((sum,b)=>sum+b.beats,0),10);assert.deepEqual(p.flatMap(b=>b.events.map(e=>[b.start+e.start,b.start+e.end])),[[2,3],[7,8]]);});
+
+test('early next confirmation queues once and starts at the exact boundary without re-entry',()=>{
+ const g=new PhraseGame();g.start(textScore('1:2 | 3:2 | 5:2'),60,0,{prepMs:0});
+ for(let t=0;t<=400;t+=25)g.update(t,0,true);
+ const boundary=g.playStart+2000;let queues=0;
+ for(let t=425;t<boundary;t+=25){const o=g.update(t,1,true);if(o.queue){queues++;assert.equal(o.queue.startAt,boundary);}}
+ assert.equal(queues,1);assert.equal(g.queued,true);const o=g.update(boundary,1,true);assert.equal(o.launch.index,1);assert.equal(g.playStart,boundary);assert.equal(g.phase,'playing');assert.equal(g.queued,false);
+});
+test('partial next dwell carries across a boundary while the pointer stays in place',()=>{
+ const g=new PhraseGame();g.start(textScore('1 | 3'),60,0,{prepMs:0});for(let t=0;t<=400;t+=25)g.update(t,0,true);
+ for(let t=425;t<=1200;t+=25)g.update(t,0,true);
+ for(let t=1225;t<=1500;t+=25)g.update(t,1,true);
+ assert.equal(g.index,1);assert.equal(g.phase,'prepare');assert.equal(g.dwell,275);
+ for(let t=1525;t<=1625;t+=25)g.update(t,1,true);assert.equal(g.phase,'playing');
+});
+test('queued selection survives pause and its boundary shifts by the pause duration',()=>{
+ const g=new PhraseGame();g.start(textScore('1:4 | 3:4'),60,0,{automatic:true,prepMs:0});g.update(0,-1,false);g.update(25,-1,false);assert.equal(g.queued,true);g.pause(1000);g.resume(6000);assert.equal(g.playStart,5100);const o=g.update(9100,-1,false);assert.equal(o.launch.index,1);assert.equal(g.playStart,9100);
+});

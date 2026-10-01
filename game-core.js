@@ -45,41 +45,60 @@
   const parts=starts.map((start,i)=>{const end=starts[i+1]??s.beats;return {start,end,beats:end-start,events:s.events.filter(e=>e.start>=start&&e.start<end).map(e=>({...e,start:e.start-start,end:e.end-start}))};});
   const joined=[];let leading=null;
   for(const p of parts){if(!p.events.length){if(joined.length){joined.at(-1).end=p.end;joined.at(-1).beats=p.end-joined.at(-1).start;}else if(leading===null)leading=p.start;continue;}if(leading!==null){const shift=p.start-leading;p.start=leading;p.beats+=shift;p.events=p.events.map(e=>({...e,start:e.start+shift,end:e.end+shift}));leading=null;}joined.push(p);}
-  return joined.map((p,i)=>({...p,index:i,zone:ROUTE[i%8],title:'Part '+(i+1)}));
+  return joined.map((p,i)=>({...p,index:i,zone:ROUTE[i%8],title:s.phraseLabels?.[i]||'Part '+(i+1),reason:s.phraseReasons?.[i]||((s.phraseStarts?.length>1)?'Score phrase boundary':'Approximate beat group')}));
  }
  class PhraseGame{
-  start(s,bpm,now,{prepMs=2000,dwellMs=600,automatic=false}={}){
-   this.score=s;this.blocks=phrases(s);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.resetDwell();
+  start(s,bpm,now,{prepMs=350,dwellMs=400,automatic=false}={}){
+   this.score=s;this.blocks=phrases(s);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.queued=false;this.resetDwell();
   }
   resetDwell(){this.dwell=0;this.last=null;this.lastGood=-Infinity;this.wasTarget=false;}
   pause(now){if(this.pausedAt===null&&!this.done){this.pausedAt=now;this.resetDwell();}}
   resume(now){if(this.pausedAt===null)return;const gap=now-this.pausedAt;this.readyAt+=gap;if(this.phase==='playing')this.playStart+=gap;this.pausedAt=null;this.resetDwell();}
+  hold(now,target){
+   if(this.last!==null&&now-this.last>250)this.resetDwell();
+   if(target===false||target===null&&now-this.lastGood>180)this.dwell=0;
+   if(target===true){if(this.wasTarget&&this.last!==null)this.dwell+=Math.min(80,now-this.last);this.lastGood=now;}
+   this.wasTarget=target===true;this.last=now;
+  }
   update(now,zone,valid){
    if(this.done||this.pausedAt!==null)return this.view(now);
-   if(this.phase==='playing'&&now>=this.playStart+this.blocks[this.index].beats*60000/this.bpm){this.completed++;this.index++;this.resetDwell();if(this.index===this.blocks.length){this.done=true;return this.view(now);}this.phase='prepare';this.readyAt=now+(this.automatic?0:this.prepMs);}
-   let launch=null;
-   if(this.phase==='prepare'&&now>=this.readyAt){
-    const target=valid&&zone===this.blocks[this.index].zone;
-    if(this.last!==null&&now-this.last>250)this.resetDwell();
-    if(valid&&!target||!valid&&now-this.lastGood>180)this.dwell=0;
-    if(target){if(this.wasTarget&&this.last!==null)this.dwell+=Math.min(80,now-this.last);this.lastGood=now;}
-    this.wasTarget=target;this.last=now;
-    if(this.automatic||target&&this.dwell>=this.dwellMs){this.phase='playing';this.playStart=now+100;launch=this.blocks[this.index];this.resetDwell();}
+   let launch=null,queue=null;
+   if(this.phase==='playing'){
+    const end=this.playStart+this.blocks[this.index].beats*60000/this.bpm,next=this.blocks[this.index+1];
+    // Confirm the next target while the current music is still playing. This is
+    // level-triggered: a stationary pointer/gaze works across the boundary.
+    if(next&&!this.queued){this.hold(now,valid?zone===next.zone:null);if(this.automatic||this.dwell>=this.dwellMs){this.queued=true;queue={block:next,startAt:end};}}
+    if(now>=end){const armed=this.queued||this.automatic;this.completed++;this.index++;this.queued=false;
+     if(this.index===this.blocks.length){this.done=true;return this.view(now);}
+     if(armed){this.phase='playing';this.playStart=end;launch=this.blocks[this.index];this.resetDwell();}
+     else {this.phase='prepare';this.readyAt=now+(this.dwell>0?0:this.prepMs);}
+    }
    }
-   return {...this.view(now),launch};
+   if(this.phase==='prepare'){
+    this.hold(now,valid?zone===this.blocks[this.index].zone:null);
+    if(now>=this.readyAt&&(this.automatic||valid&&zone===this.blocks[this.index].zone&&this.dwell>=this.dwellMs)){this.phase='playing';this.playStart=now+100;launch=this.blocks[this.index];this.resetDwell();}
+   }
+   return {...this.view(now),launch,queue};
   }
-  view(now){if(this.done)return {done:true,completed:this.completed};if(this.pausedAt!==null)now=this.pausedAt;const block=this.blocks[this.index];const elapsed=this.phase==='playing'?Math.max(0,(now-this.playStart)/1000):0;return {done:false,phase:this.phase,block,next:this.blocks[this.index+1],elapsed,remaining:Math.max(0,1-elapsed/(block.beats*60/this.bpm)),prepareLeft:Math.max(0,this.readyAt-now),dwell:Math.min(1,this.dwell/this.dwellMs),completed:this.completed};}
+  view(now){if(this.done)return {done:true,completed:this.completed};if(this.pausedAt!==null)now=this.pausedAt;const block=this.blocks[this.index];const elapsed=this.phase==='playing'?Math.max(0,(now-this.playStart)/1000):0;return {done:false,phase:this.phase,block,next:this.blocks[this.index+1],elapsed,remaining:Math.max(0,1-elapsed/(block.beats*60/this.bpm)),prepareLeft:Math.max(0,this.readyAt-now),dwell:Math.min(1,this.dwell/this.dwellMs),queued:this.queued,completed:this.completed};}
  }
  // Small audio lookahead, independent of screen redraws. On resume, unfinished
  // long notes are re-attacked; already-ended notes are never emitted in a burst.
  class PhraseScheduler{
-  constructor(block,bpm,offset=0){this.events=block.events.map((e,id)=>({id,midi:e.midi,start:e.start*60/bpm,end:e.end*60/bpm})).filter(e=>e.end>offset);this.cursor=0;}
+  constructor(block,bpm,offset=0){this.events=block.events.map((e,id)=>({...e,id,start:e.start*60/bpm,end:e.end*60/bpm})).filter(e=>e.end>offset);this.cursor=0;}
   take(elapsed,ahead=.2){const due=[];while(this.cursor<this.events.length&&this.events[this.cursor].start<=elapsed+ahead){const e=this.events[this.cursor++];if(e.end>elapsed)due.push({...e,start:Math.max(e.start,elapsed)});}return due;}
  }
- function builtinScores(){return [
+ function builtinScores(){const songs=[
   textScore('1 1 5 5 6 6 5:2 | 4 4 3 3 2 2 1:2 | 5 5 4 4 3 3 2:2 | 5 5 4 4 3 3 2:2 | 1 1 5 5 6 6 5:2 | 4 4 3 3 2 2 1:2','Twinkle, Twinkle, Little Star'),
   textScore('3 2 1 2 3 3 3:2 | 2 2 2:2 3 5 5:2 | 3 2 1 2 3 3 3 3 | 2 2 3 2 1:4','Mary Had a Little Lamb'),
   textScore('1 2 3 1 | 1 2 3 1 | 3 4 5:2 | 3 4 5:2 | 5:0.5 6:0.5 5:0.5 4:0.5 3 1 | 5:0.5 6:0.5 5:0.5 4:0.5 3 1 | 1 5 1:2 | 1 5 1:2','Frère Jacques')
- ];}
+ ];
+ const edits=[
+ {name:'Twinkle · starlight groove',bpm:96,style:'chill',cuts:[0,4,8,12,16,18,22,24,28,32,36,40,44],chords:[0,3,3,0,3,4,0,4,0,3,3,0]},
+ {name:'Mary · sunshine pop',bpm:100,style:'pop',cuts:[0,4,8,12,16,20,24,26,28],chords:[0,0,4,0,0,0,4,0]},
+ {name:'Frère Jacques · night drive',bpm:104,style:'electro',cuts:[0,4,8,12,16,18,20,24,28],chords:[0,0,0,0,3,0,4,0]}
+ ];
+ return songs.map((song,i)=>{const edit=edits[i];song.title=edit.name;song.bpm=edit.bpm;song.style=edit.style;song.chords=edit.chords;song.phraseStarts=edit.cuts;song.phraseLabels=edit.cuts.map((_,j)=>j===0?'Opening':j===edit.cuts.length-1?'Finale':j%3===1?'Answer '+Math.ceil(j/3):j%3===2?'Turn '+Math.ceil(j/3):'Theme '+j/3);song.phraseReasons=edit.cuts.map((start,j)=>{const end=edit.cuts[j+1]??song.beats;return end-start<=2?'Short motif / pickup':j===edit.cuts.length-1?'Closing cadence':j%3===1?'Answering motif':'Melodic motif boundary';});return song;});
+ }
  const api={SCALE,score,sequential,textScore,midiScores,phrases,PhraseGame,PhraseScheduler,builtinScores};if(typeof module!=='undefined')module.exports=api;else root.DonutGame=api;
 })(globalThis);
