@@ -1,27 +1,14 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {textScore,score,midiScores,RhythmGame}=require('../game-core.js');
-const start=s=>{const g=new RhythmGame();g.start(s,60,0);return g;};
+const {textScore,score,midiScores,phrases,PhraseGame,PhraseScheduler,builtinScores}=require('../game-core.js');
+
 test('score keeps canonical donut notes and honors rests and held durations',()=>{
  const s=textScore('1 1 0:2 | 5:2 8:0.5');
  assert.deepEqual(s.events.map(e=>[e.midi,e.start,e.end,e.zone]),[[60,0,1,0],[60,1,2,0],[67,4,6,4],[72,6,6.5,7]]);
  assert.throws(()=>textScore('1 hello'),/Use 1/);assert.throws(()=>textScore('0 0'),/1–1000/);
  assert.throws(()=>textScore('{"notes":[{"note":60,"beats":-1}]}'),/duration/);
  assert.throws(()=>score('chords',72,[{midi:60,start:0,end:2},{midi:64,start:1,end:3}]),/overlapping/);
- assert.throws(()=>score('large',72,Array.from({length:9},(_,i)=>({midi:60+i,start:i,end:i+1}))),/8 different/);
+ assert.equal(score('large',72,Array.from({length:9},(_,i)=>({midi:60+i,start:i,end:i+1}))).events.length,9);
  const custom=score('custom',72,[{midi:61,start:0,end:1},{midi:66,start:1,end:2}]);assert.deepEqual(custom.pitches,[61,66]);assert.deepEqual(custom.events.map(e=>e.zone),[0,1]);
-});
-test('count-in cannot score; repeated target notes retrigger once per new beat',()=>{
- const g=start(textScore('1 1'));assert.equal(g.update(3900,0,true).hit,null);
- assert.equal(g.update(4000,0,true).hit,null);assert.ok(g.update(4120,0,true).hit);
- assert.equal(g.update(4240,0,true).hit,null);assert.equal(g.hits,1);
- assert.equal(g.update(5000,0,true).hit,null);assert.ok(g.update(5120,0,true).hit);assert.equal(g.hits,2);
- assert.equal(g.update(6000,0,true).done,true);assert.equal(g.misses,0);
-});
-test('wrong target, lost gaze and delayed frames reset dwell; skipped notes count misses',()=>{
- const g=start(textScore('1 2 0 3'));g.update(4000,0,true);g.update(4080,0,false);assert.equal(g.update(4120,0,true).hit,null);
- g.update(4200,1,true);assert.equal(g.update(4250,0,true).hit,null);assert.equal(g.update(4600,0,true).hit,null);
- const o=g.update(6120,2,true);assert.equal(o.active,false);assert.equal(o.hit,null);assert.equal(g.misses,2);
- g.update(7000,2,true);assert.ok(g.update(7120,2,true).hit);g.update(8000,2,true);assert.equal(g.hits,1);assert.equal(g.misses,2);
 });
 const chunk=(name,a)=>Buffer.concat([Buffer.from(name),Buffer.from([a.length>>>24,a.length>>>16&255,a.length>>>8&255,a.length&255]),Buffer.from(a)]);
 function midi(tracks,format=1){const b=Buffer.concat([chunk('MThd',[0,format,0,tracks.length,1,224]),...tracks.map(t=>chunk('MTrk',t))]);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}
@@ -40,3 +27,39 @@ test('MIDI rejects truncation, changing tempo and unsupported timing; marks chor
  assert.match(midiScores(midi([chord]))[0].error,/overlapping/);
  assert.throws(()=>midiScores(midi([[0,144,60,80,0,255,47,0]])),/without note-off/);
 });
+
+for(const song of builtinScores())test(song.title+': complete every phrase with slow gaze, a blink and delayed acquisition',()=>{
+ const blocks=phrases(song);assert.deepEqual(blocks.flatMap(b=>b.events.map(e=>[e.midi,b.start+e.start,b.start+e.end])),song.events.map(e=>[e.midi,e.start,e.end]));
+ const g=new PhraseGame();g.start(song,60,0);let launched=[],scheduled=[],scheduler=null,waitingSince=0;
+ for(let now=0;now<240000&&!g.done;now+=25){
+  // Wait another 1.5 s after the preparation time; one 100 ms blink per dwell.
+  const waitAge=now-g.readyAt;const valid=g.phase==='playing'?false:waitAge>=1500&&!(waitAge>=1800&&waitAge<1900);
+  const o=g.update(now,g.blocks[g.index]?.zone??-1,valid);
+  if(o.launch){assert.ok(waitAge>=2100);launched.push(o.launch.index);scheduler=new PhraseScheduler(o.launch,60);}
+  if(scheduler&&!g.done&&g.phase==='playing')scheduled.push(...scheduler.take((now-g.playStart)/1000).map(e=>e.midi));
+ }
+ assert.equal(g.done,true);assert.equal(g.completed,blocks.length);assert.deepEqual(launched,blocks.map(b=>b.index));assert.deepEqual(scheduled,song.events.map(e=>e.midi));
+});
+test('Twinkle has six phrases, Mary four, Frère Jacques eight; pitch does not choose target',()=>{
+ assert.deepEqual(builtinScores().map(s=>phrases(s).length),[6,4,8]);assert.equal(phrases(builtinScores()[0])[0].events.length,7);
+ assert.deepEqual(phrases(builtinScores()[2]).map(p=>p.zone),[0,1,2,3,7,6,5,4]);
+});
+test('waiting has no timeout; lost tracking recovers without a manual pause or skipped phrase',()=>{
+ const g=new PhraseGame();g.start(textScore('1 2 | 3 4'),60,0);g.update(100000,-1,false);assert.equal(g.index,0);assert.equal(g.phase,'prepare');
+ for(let t=100025;t<=100650;t+=25)g.update(t,0,true);assert.equal(g.phase,'playing');
+ for(let t=100675;t<104000;t+=25)g.update(t,-1,false);assert.equal(g.completed,1);assert.equal(g.pausedAt,null);assert.equal(g.index,1);
+ for(let t=104000;t<106000;t+=25)g.update(t,1,true);assert.equal(g.phase,'playing');
+});
+test('pause/resume freezes a phrase and resumes remaining notes rather than replaying past notes',()=>{
+ const g=new PhraseGame();g.start(textScore('1:2 3 5'),60,0,{automatic:true,prepMs:0});g.update(0,-1,false);g.pause(1100);const before=g.view(1100);g.update(50000,-1,false);assert.deepEqual(g.view(50000),before);g.resume(50000);assert.equal(g.view(50000).elapsed,1);
+ const scheduler=new PhraseScheduler(g.blocks[0],60,1);const due=scheduler.take(1);assert.equal(due.length,1);assert.equal(due[0].start,1);assert.equal(due[0].end,2);assert.equal(scheduler.take(1.1).length,0);assert.equal(scheduler.take(2)[0].midi,64);
+});
+test('short invalid gaps cannot add dwell; wrong targets and long gaps reset selection',()=>{
+ const g=new PhraseGame();g.start(textScore('1'),60,0,{prepMs:0});for(let t=0;t<=300;t+=25)g.update(t,0,true);assert.equal(g.dwell,300);g.update(325,-1,false);g.update(350,0,true);assert.equal(g.dwell,300);g.update(375,1,true);assert.equal(g.dwell,0);g.update(1000,0,true);assert.equal(g.dwell,0);
+});
+test('MIDI grouping keeps every note and sustained duration; more than eight pitches are supported',()=>{
+ const s=score('chromatic',60,Array.from({length:12},(_,i)=>({midi:60+i,start:i,end:i+1})));const p=phrases(s);assert.equal(p.length,2);assert.equal(p.flatMap(b=>b.events).length,12);assert.equal(p[0].zone,0);assert.equal(p[1].zone,1);
+ const long=phrases(textScore('1:12 2 3'));assert.equal(long[0].events[0].end,12);assert.equal(long[1].start,12);
+});
+
+test('explicit rest-only phrases are retained as silence without requiring an empty target',()=>{const s=textScore('0:2 | 1 | 0:4 | 2 | 0:2');const p=phrases(s);assert.equal(p.length,2);assert.equal(p.reduce((sum,b)=>sum+b.beats,0),10);assert.deepEqual(p.flatMap(b=>b.events.map(e=>[b.start+e.start,b.start+e.end])),[[2,3],[7,8]]);});

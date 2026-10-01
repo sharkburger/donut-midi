@@ -6,7 +6,7 @@ let neonPackageActive=false;
 const neonPackageClient=new NeonConnectorClient({
  sample:(s,age)=>{if(source!=='live')return;receive(s);sampleReceived-=age;connectionState='Receiving via local connector';$('pairStatus').textContent=`Live Neon · ${s.worn?'glasses worn':'glasses not worn'} · ${s.markerCount??0}/4 markers · ${s.surfaceValid?'mat located':'mat not located'}`;},
  status:(message,first)=>{connectionState='Connector connected';$('connectionInfo').textContent=message;$('pairStatus').textContent=message;if(first){neonPackageActive=true;toast('Connector paired. Enable sound, then open the screen mat.');}},
- lost:message=>{neonPackageActive=false;sample=null;sampleReceived=0;instrument.stop();dwell.reset();connectionState='Disconnected';$('pairStatus').textContent=message+' If the browser blocks local access, open the local fallback link from the connector.';$('connectionInfo').textContent=message;}
+ lost:message=>{neonPackageActive=false;sample=null;sampleReceived=0;if(typeof gameModeActive!=='function'||!gameModeActive())instrument.stop();dwell.reset();connectionState='Disconnected';$('pairStatus').textContent=message+' If the browser blocks local access, open the local fallback link from the connector.';$('connectionInfo').textContent=message;}
 });
 window.donutNeonConnector=neonPackageClient;
 function stopNeonPackage(){if(window.donutNeonConnector){window.donutNeonConnector.stop();neonPackageActive=false;}}

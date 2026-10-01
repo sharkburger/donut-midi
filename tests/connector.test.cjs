@@ -50,3 +50,10 @@ test('default browser fetch retains its Window receiver',async()=>{
  vm.runInContext('globalThis.client=new NeonConnectorClient({sample:()=>{},lost:message=>{lastError=message;}})',context);
  try{await context.client.start(token);assert.equal(context.lastError,null);assert.equal(context.fetchCalls,1);}finally{context.client.stop();}
 });
+
+
+test('connection loss clears gaze but lets a launched game phrase finish; free-play still stops',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require.resolve('../connector.js'),'utf8');
+ const code=s.slice(s.indexOf('const neonPackageClient='),s.indexOf('window.donutNeonConnector='));
+ for(const game of [true,false]){let callbacks,stops=0;const els={};const context={NeonConnectorClient:class{constructor(c){callbacks=c;}},gameModeActive:()=>game,instrument:{stop:()=>stops++},dwell:{reset(){}},$:id=>els[id]??={},sample:{worn:true},sampleReceived:100,neonPackageActive:true};vm.createContext(context);vm.runInContext(code,context);callbacks.lost('test disconnect');assert.equal(context.sample,null);assert.equal(context.sampleReceived,0);assert.equal(context.connectionState,'Disconnected');assert.equal(stops,game?0:1);}
+});

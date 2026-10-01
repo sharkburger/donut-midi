@@ -184,7 +184,7 @@ function update(now){
   if(dwell.update(consumed[zone]?-1:zone,now,config.dwell,enabled))trigger(zone);
   if(!gameOn&&fresh&&sample.surfaceValid&&sample.y>.86&&sample.y<.95&&phase!=='taste'&&instrument.voices.length)instrument.stop();
   // Stale or unworn live input must never leave a held sound playing indefinitely.
-  if(source==='live'&&(!fresh||!sample.worn))instrument.stop();
+  if(!gameOn&&source==='live'&&(!fresh||!sample.worn))instrument.stop();
   if(recording&&now-lastRecordSample>=33){lastRecordSample=now;const s=fresh?sample:{x:null,y:null,pupilLeft:null,pupilRight:null,worn:false,surfaceValid:false};recording.samples.push({t:now-recording.start,x:s.x,y:s.y,pupilLeft:s.pupilLeft,pupilRight:s.pupilRight,worn:s.worn,surfaceValid:s.surfaceValid,deviceTimestamp:s.deviceTimestamp??null,sceneGaze:s.sceneGaze??null,markerCount:s.markerCount??null,baseline,baselineReady,smoothed,delta,phase,consumed:[...consumed]});if(now-recording.start>=3600000){stopRecording();toast('One-hour recording limit reached. Please export.');}}
   if(now-lastUITick>100){lastUITick=now;trace.push(pv!==null?delta:null);if(trace.length>180)trace.shift();$('pupilDelta').innerHTML=pv!==null&&baselineReady?`${delta>=0?'+':''}${delta.toFixed(2)} <small>mm</small>`:'— <small>mm</small>';
     $('baselineLabel').textContent=baselineReady?`${source==='simulate'||replay?.source==='synthetic-demo'&&source==='replay'?'Simulated':'Personal'} baseline ${baseline.toFixed(2)} mm`:'No baseline yet';$('bodyStatus').textContent=!config.body?'Body modulation off':!baselineReady?'Waiting for baseline':pv===null?'Invalid input · neutral sound':'Body modulation on';
