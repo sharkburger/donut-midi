@@ -47,9 +47,20 @@
   for(const p of parts){if(!p.events.length){if(joined.length){joined.at(-1).end=p.end;joined.at(-1).beats=p.end-joined.at(-1).start;}else if(leading===null)leading=p.start;continue;}if(leading!==null){const shift=p.start-leading;p.start=leading;p.beats+=shift;p.events=p.events.map(e=>({...e,start:e.start+shift,end:e.end+shift}));leading=null;}joined.push(p);}
   return joined.map((p,i)=>({...p,index:i,zone:ROUTE[i%8],title:s.phraseLabels?.[i]||'Part '+(i+1),reason:s.phraseReasons?.[i]||((s.phraseStarts?.length>1)?'Score phrase boundary':'Approximate beat group')}));
  }
+ // Generate once per run: musical order stays intact, only target locations vary.
+ function routeBlocks(blocks,mode='practice',random=Math.random){
+  if(mode!=='random')return blocks;
+  const visits=Array(8).fill(0);let previous=-1;
+  return blocks.map(block=>{
+   const candidates=Array.from({length:8},(_,i)=>i).filter(i=>i!==previous&&(previous<0||Math.abs(i%4-previous%4)+Math.abs(Math.floor(i/4)-Math.floor(previous/4))<=2));
+   const least=Math.min(...candidates.map(i=>visits[i]));const pool=candidates.filter(i=>visits[i]===least);
+   const zone=pool[Math.min(pool.length-1,Math.floor(random()*pool.length))];visits[zone]++;previous=zone;
+   return {...block,zone};
+  });
+ }
  class PhraseGame{
-  start(s,bpm,now,{prepMs=350,dwellMs=400,automatic=false}={}){
-   this.score=s;this.blocks=phrases(s);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.queued=false;this.resetDwell();
+  start(s,bpm,now,{prepMs=350,dwellMs=400,automatic=false,route='practice',random=Math.random}={}){
+   this.score=s;this.blocks=routeBlocks(phrases(s),route,random);this.bpm=bpm;this.prepMs=prepMs;this.dwellMs=dwellMs;this.automatic=automatic;this.index=0;this.completed=0;this.phase='prepare';this.readyAt=now+prepMs;this.pausedAt=null;this.done=false;this.queued=false;this.resetDwell();
   }
   resetDwell(){this.dwell=0;this.last=null;this.lastGood=-Infinity;this.wasTarget=false;}
   pause(now){if(this.pausedAt===null&&!this.done){this.pausedAt=now;this.resetDwell();}}
@@ -100,5 +111,5 @@
  ];
  return songs.map((song,i)=>{const edit=edits[i];song.title=edit.name;song.bpm=edit.bpm;song.style=edit.style;song.chords=edit.chords;song.phraseStarts=edit.cuts;song.phraseLabels=edit.cuts.map((_,j)=>j===0?'Opening':j===edit.cuts.length-1?'Finale':j%3===1?'Answer '+Math.ceil(j/3):j%3===2?'Turn '+Math.ceil(j/3):'Theme '+j/3);song.phraseReasons=edit.cuts.map((start,j)=>{const end=edit.cuts[j+1]??song.beats;return end-start<=2?'Short motif / pickup':j===edit.cuts.length-1?'Closing cadence':j%3===1?'Answering motif':'Melodic motif boundary';});return song;});
  }
- const api={SCALE,score,sequential,textScore,midiScores,phrases,PhraseGame,PhraseScheduler,builtinScores};if(typeof module!=='undefined')module.exports=api;else root.DonutGame=api;
+ const api={SCALE,score,sequential,textScore,midiScores,phrases,routeBlocks,PhraseGame,PhraseScheduler,builtinScores};if(typeof module!=='undefined')module.exports=api;else root.DonutGame=api;
 })(globalThis);

@@ -81,3 +81,15 @@ test('partial next dwell carries across a boundary while the pointer stays in pl
 test('queued selection survives pause and its boundary shifts by the pause duration',()=>{
  const g=new PhraseGame();g.start(textScore('1:4 | 3:4'),60,0,{automatic:true,prepMs:0});g.update(0,-1,false);g.update(25,-1,false);assert.equal(g.queued,true);g.pause(1000);g.resume(6000);assert.equal(g.playStart,5100);const o=g.update(9100,-1,false);assert.equal(o.launch.index,1);assert.equal(g.playStart,9100);
 });
+
+test('random routes change only targets, avoid repeats and long jumps, and do not mutate the score',()=>{
+ const {routeBlocks}=require('../game-core');let seed=13;const rng=()=>((seed=seed*16807%2147483647)-1)/2147483646;
+ const original=phrases(builtinScores()[0]),before=JSON.stringify(original),routes=new Set();
+ for(let run=0;run<100;run++){const result=routeBlocks(original,'random',rng);routes.add(result.map(b=>b.zone).join(','));
+ result.forEach((b,i)=>{assert.equal(b.events,original[i].events);assert.equal(b.start,original[i].start);assert.equal(b.index,i);assert.ok(b.zone>=0&&b.zone<8);if(i){const prev=result[i-1].zone;assert.notEqual(b.zone,prev);assert.ok(Math.abs(b.zone%4-prev%4)+Math.abs(Math.floor(b.zone/4)-Math.floor(prev/4))<=2);}});}
+ assert.ok(routes.size>90);assert.equal(JSON.stringify(original),before);assert.equal(routeBlocks(original,'practice'),original);
+});
+test('random target preview stays stable through play and pause, all music completes',()=>{
+ const s=builtinScores()[0],g=new PhraseGame();g.start(s,s.bpm,0,{automatic:true,prepMs:0,route:'random',random:()=>.6});const route=g.blocks.map(b=>b.zone);g.update(0,-1,false);g.pause(100);g.resume(500);
+ for(let now=500;now<40000&&!g.done;now+=25){g.update(now,-1,false);assert.deepEqual(g.blocks.map(b=>b.zone),route);}assert.equal(g.done,true);assert.equal(g.completed,13);
+});
