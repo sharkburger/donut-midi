@@ -84,3 +84,26 @@ function dashboardUpdate(){
 }
 setInterval(dashboardUpdate,150);openDashboardPanel('connect');fitScore();dashboardUpdate();
 const dashboardStyle=document.createElement('link');dashboardStyle.rel='stylesheet';dashboardStyle.href='dashboard.css?v=eye-status-1';document.head.append(dashboardStyle);
+
+// Keep the instrument and its authenticated connection alive while editing.
+const workshopButton=document.createElement('button');workshopButton.id='openWorkshop';workshopButton.textContent='Workshop Editor';
+const performanceButton=document.createElement('button');performanceButton.textContent='Performance Console';performanceButton.onclick=()=>toggleController(true);
+headerActions.prepend(performanceButton,workshopButton);
+const workshopShell=document.createElement('section');workshopShell.id='workshopShell';workshopShell.hidden=true;
+workshopShell.innerHTML='<nav aria-label="Workspace"><b>Donut MIDI · Workshop Editor</b><button id="closeWorkshop">← Return to performance</button></nav><div id="workshopFrame"></div>';
+document.body.append(workshopShell);
+const workshopStyle=document.createElement('style');workshopStyle.textContent='#workshopShell:not([hidden]){position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:56px minmax(0,1fr);background:#f4eee5}#workshopShell nav{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-bottom:1px solid #ddd}#workshopFrame,#workshopFrame iframe{width:100%;height:100%;border:0;min-height:0}#openWorkshop{background:#007d83;color:white}.dashboard-header .header-right{gap:6px}';document.head.append(workshopStyle);
+let workshopFrame=null;
+workshopButton.onclick=()=>{
+ if(recording||researchRunning()||calibrating||cognitiveEvidence.capture||(typeof studyRecorder!=='undefined'&&studyRecorder)){toast('Finish the current test, recording or reference capture before opening the editor.');return;}
+ if(typeof pauseGame==='function')pauseGame('workshop editor');
+ if(audioEnabled)toggleAudio();
+ instrument.stop();stopBacking();stopStateSound();stateSoundscapes.stop(true);
+ workshopShell.hidden=false;dash.inert=true;document.querySelector('header').inert=true;$('closeWorkshop').focus();
+ workshopFrame=document.createElement('iframe');workshopFrame.title='Workshop p5 editor';workshopFrame.src='library/editor.html?embedded=1&v=integrated-1';$('workshopFrame').replaceChildren(workshopFrame);
+};
+$('closeWorkshop').onclick=()=>{workshopFrame?.remove();workshopFrame=null;workshopShell.hidden=true;dash.inert=false;document.querySelector('header').inert=false;workshopButton.focus();toast('Returned to performance. Resume sound or the game when ready.');};
+setInterval(()=>{
+ if(!workshopFrame)return;
+ workshopFrame.contentWindow?.postMessage({type:'donut-workshop-input',live:source==='live',sample:source==='live'?sample:null,age:Math.max(0,performance.now()-sampleReceived),status:connectionState},location.origin);
+},50);

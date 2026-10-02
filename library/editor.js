@@ -32,3 +32,23 @@ document.querySelector('#editor-connect').onclick=async()=>{connection.textConte
 document.querySelector('#editor-mouse').onclick=()=>{bridge.disconnect();send({type:'input',live:false});connection.textContent='Mouse simulation';};
 window.addEventListener('pagehide',()=>bridge.dispose());
 (async()=>{try{const [template,mat]=await Promise.all([fetch('template.js?v=workshop-2'),fetch('../monitor-mat.svg')]);if(!template.ok||!mat.ok)throw Error('Template assets could not load.');baseTemplate=await template.text();matURL='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(await mat.text())));let draft;try{draft=localStorage.getItem(draftKey);}catch{}editor.value=draft||baseTemplate;run();if(draft)document.querySelector('#template-help').textContent='Your saved draft is preserved. To get the latest template with a 250 ms dwell, select a template and click Load template. Download your draft first if needed.';}catch(error){message.textContent=error.message;}})();
+
+// Embedded editor receives samples, never credentials, from the existing app.
+const embeddedWorkshop=new URLSearchParams(location.search).get('embedded')==='1'&&window.parent!==window;
+let sharedLive=false;
+if(embeddedWorkshop){
+ document.querySelector('header').style.display='none';
+ const panel=document.querySelector('.editor-connection');
+ panel.replaceChildren(connection);
+ connection.textContent='Using the app input. Pair Neon in the main page, or use the mouse in this preview.';
+ window.addEventListener('message',event=>{
+  if(event.source!==window.parent||event.origin!==location.origin||event.data?.type!=='donut-workshop-input')return;
+  const data=event.data;
+  if(sharedLive!==!!data.live){sharedLive=!!data.live;bridge.mode=sharedLive?'live':'disconnected';send({type:'input',live:sharedLive});}
+  connection.textContent=sharedLive?'Shared Neon connection · '+String(data.status):'Mouse simulation · use the pointer inside the preview';
+  if(sharedLive&&running){
+   if(data.sample&&Number.isFinite(data.age)&&data.age<500)send({type:'sample',sample:data.sample,age:data.age});
+   else send({type:'lost'});
+  }
+ });
+}
