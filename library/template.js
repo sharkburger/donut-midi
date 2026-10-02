@@ -3,16 +3,24 @@
 const TRAIL_COLOR = '#008d95';
 const TRAIL_WIDTH = 4;
 const DWELL_MS = 500;
-const PLAY_NOTES = false;
+const PLAY_NOTES = true;
+const TRAIL_LIFETIME_MS = 1200; // Fade away even when the pointer stops.
 
 new p5(p => {
   let mat, canvas, audio, trail = [], previous = null;
   const notes = [60, 62, 64, 65, 67, 69, 71, 72];
   const columns = [.185, .395, .605, .815];
 
+  // Fit the entire 3:2 mat inside the preview, leaving room for sound controls.
+  const size = () => {
+    const w = Math.max(1, Math.min(p.windowWidth, (p.windowHeight - 56) * 1.5));
+    return [w, w / 1.5];
+  };
   p.preload = () => { mat = p.loadImage(MAT_URL); };
   p.setup = () => {
-    canvas = p.createCanvas(p.windowWidth, p.windowWidth / 1.5);
+    canvas = p.createCanvas(...size());
+    canvas.style('display', 'block');
+    canvas.style('margin', '56px auto 0');
     // In live mode, this call is ignored by the editor's input adapter.
     neon.useMouse(canvas);
     neon.setRegions(notes.map((note, i) => ({
@@ -22,10 +30,12 @@ new p5(p => {
     })));
     if (PLAY_NOTES) {
       const button = p.createButton('Enable sound');
+      button.position(12, 8);
       button.mousePressed(async () => {
         audio ??= new AudioContext();
         await audio.resume();
-        button.html('Sound enabled');
+        button.html('Sound enabled · dwell on a donut');
+        neon.resetDwell();
       });
     }
     neon.on('dwell', ({region}) => {
@@ -47,13 +57,17 @@ new p5(p => {
     // Protect the corner markers so Neon can locate the surface.
     const inside = gaze && gaze.x > .13 && gaze.x < .87
       && gaze.y > .2 && gaze.y < .8;
-    if (!PLAY_NOTES) {
-      if (inside && previous) trail.push([previous, gaze]);
-      previous = inside ? gaze : null;
-      if (trail.length > 1200) trail.shift();
-      p.stroke(TRAIL_COLOR); p.strokeWeight(TRAIL_WIDTH);
-      for (const [a, b] of trail)
-        p.line(a.x * p.width, a.y * p.height, b.x * p.width, b.y * p.height);
+    const now = p.millis();
+    if (inside && previous && (previous.x !== gaze.x || previous.y !== gaze.y))
+      trail.push({a: previous, b: {...gaze}, time: now});
+    previous = inside ? {...gaze} : null;
+    trail = trail.filter(segment => now - segment.time < TRAIL_LIFETIME_MS);
+    p.strokeWeight(TRAIL_WIDTH);
+    for (const {a, b, time} of trail) {
+      const color = p.color(TRAIL_COLOR);
+      color.setAlpha(255 * (1 - (now - time) / TRAIL_LIFETIME_MS));
+      p.stroke(color);
+      p.line(a.x * p.width, a.y * p.height, b.x * p.width, b.y * p.height);
     }
     if (inside) {
       p.noFill(); p.stroke(TRAIL_COLOR); p.strokeWeight(2);
@@ -65,5 +79,5 @@ new p5(p => {
       p.rect(r.x*p.width, r.y*p.height, r.width*p.width, r.height*p.height, 12);
     }
   };
-  p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowWidth / 1.5);
+  p.windowResized = () => p.resizeCanvas(...size());
 });

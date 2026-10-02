@@ -22,7 +22,7 @@ window.addEventListener('message',e=>{
  else if(data?.type==='log'){message.textContent=String(data.text).slice(0,180);}
 });
 document.querySelector('#run').onclick=run;document.querySelector('#stop').onclick=stop;
-document.querySelector('#load-template').onclick=()=>{if(editor.value!==activeCode&&!confirm('Replace the current draft with the selected template? Download first if you want to keep it.'))return;editor.value=baseTemplate.replace('const PLAY_NOTES = false;',`const PLAY_NOTES = ${document.querySelector('#template').value==='music'};`);run();};
+document.querySelector('#load-template').onclick=()=>{if(editor.value!==activeCode&&!confirm('Replace the current draft with the selected template? Download first if you want to keep it.'))return;editor.value=baseTemplate.replace('const PLAY_NOTES = true;',`const PLAY_NOTES = ${document.querySelector('#template').value!=='paint'};`);run();};
 editor.addEventListener('input',save);
 document.querySelector('#download').onclick=()=>{
  const prelude="// Standalone: load p5.js and p5.neon.js before this file.\nconst neon = new NeonP5();\nconst MAT_URL = '../monitor-mat.svg';\n";
@@ -31,4 +31,4 @@ document.querySelector('#download').onclick=()=>{
 document.querySelector('#editor-connect').onclick=async()=>{connection.textContent='Connecting…';send({type:'lost'});try{await bridge.connect({code:document.querySelector('#editor-pair').value.trim(),port:Number(document.querySelector('#editor-port').value)});}catch(error){connection.textContent=error.message;}};
 document.querySelector('#editor-mouse').onclick=()=>{bridge.disconnect();send({type:'input',live:false});connection.textContent='Mouse simulation';};
 window.addEventListener('pagehide',()=>bridge.dispose());
-(async()=>{try{const [template,mat]=await Promise.all([fetch('template.js'),fetch('../monitor-mat.svg')]);if(!template.ok||!mat.ok)throw Error('Template assets could not load.');baseTemplate=await template.text();matURL='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(await mat.text())));let draft;try{draft=localStorage.getItem(draftKey);}catch{}editor.value=draft||baseTemplate;run();}catch(error){message.textContent=error.message;}})();
+(async()=>{try{const [template,mat]=await Promise.all([fetch('template.js?v=workshop-1'),fetch('../monitor-mat.svg')]);if(!template.ok||!mat.ok)throw Error('Template assets could not load.');baseTemplate=await template.text();matURL='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(await mat.text())));let draft;try{draft=localStorage.getItem(draftKey);}catch{}editor.value=draft||baseTemplate;run();if(draft)document.querySelector('#template-help').textContent='Your saved draft is preserved. To get the fitted canvas and fading trail, select a template and click Load template. Download your draft first if needed.';}catch(error){message.textContent=error.message;}})();
