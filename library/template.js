@@ -2,7 +2,7 @@
 // The editor supplies neon and MAT_URL. See README for standalone use.
 const TRAIL_COLOR = '#008d95';
 const TRAIL_WIDTH = 4;
-const DWELL_MS = 500;
+const DWELL_MS = 250; // Intentional hold before triggering; increase if gaze triggers too easily.
 const PLAY_NOTES = true;
 const TRAIL_LIFETIME_MS = 1200; // Fade away even when the pointer stops.
 
@@ -32,7 +32,7 @@ new p5(p => {
       const button = p.createButton('Enable sound');
       button.position(12, 8);
       button.mousePressed(async () => {
-        audio ??= new AudioContext();
+        audio ??= new AudioContext({latencyHint: 'interactive'});
         await audio.resume();
         button.html('Sound enabled · dwell on a donut');
         neon.resetDwell();
