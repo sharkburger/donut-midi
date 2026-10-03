@@ -139,3 +139,8 @@ This is an original gaze-controlled digital study inspired by [Daniel Rozin’s 
 `new NeonEffects.PixelMirror({columns,radius,speedMs,returnMs})` provides `setImage(p5Image)`, `update(gazeOrNull,timeMs)`, `draw(p)`, and `reset()`. Image colors are sampled once per image/density change; each animation frame uses the cached grid. The helper exposes `bounds` in normalized surface coordinates, so you can reuse the same image AOI in another sketch.
 
 The editor supplies `DEFAULT_IMAGE_URL` as an embedded default image to its sandbox. Copy/sketch download includes the public image URL; project ZIP includes `donut-eye.png` and a local URL. Custom uploaded image data is preserved in all exports. No images or gaze are uploaded by Replace image.
+
+
+### Resize code / preview (App 1.4.2)
+
+Drag the divider between code and preview to give the render more space. The full 3:2 mat and all four tags resize together; the preview grows vertically with its width instead of stopping at 420 px. Your split is remembered in this browser. Double-click the divider (or press Enter while focused) to return to 50/50; arrow keys adjust it, Shift+arrow makes larger steps. Small windows stack both panes. Resizing preserves the running sketch and shared Neon connection.

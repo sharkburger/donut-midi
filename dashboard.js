@@ -100,7 +100,7 @@ workshopButton.onclick=()=>{
  if(audioEnabled)toggleAudio();
  instrument.stop();stopBacking();stopStateSound();stateSoundscapes.stop(true);
  workshopShell.hidden=false;dash.inert=true;document.querySelector('header').inert=true;$('closeWorkshop').focus();
- workshopFrame=document.createElement('iframe');workshopFrame.title='Workshop p5 editor';workshopFrame.src='library/editor.html?embedded=1&v=mirror-1';$('workshopFrame').replaceChildren(workshopFrame);
+ workshopFrame=document.createElement('iframe');workshopFrame.title='Workshop p5 editor';workshopFrame.src='library/editor.html?embedded=1&v=split-1';$('workshopFrame').replaceChildren(workshopFrame);
 };
 $('closeWorkshop').onclick=()=>{workshopFrame?.remove();workshopFrame=null;workshopShell.hidden=true;dash.inert=false;document.querySelector('header').inert=false;workshopButton.focus();toast('Returned to performance. Resume sound or the game when ready.');};
 setInterval(()=>{
