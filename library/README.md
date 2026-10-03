@@ -106,3 +106,25 @@ Click **Apply layout & run**, then **Download matching mat**. This exports an SV
 **Physical mat mode** hides scanable tags on the screen so the camera only sees the printed set. Uncheck it for screen gaze testing. All four printed tags must be visible to the scene camera. Moving a physical donut alone does not move the sound: this is surface-region mapping, not object recognition. Food height can introduce parallax relative to the flat mat; verify each target with the actual glasses and adjust placement before the workshop. Missing/stale gaze cannot trigger sound. Press **Enable sound** after running a sketch.
 
 The embedded editor shares the main app's input and never receives pairing credentials. Return to performance stops the preview audio; code is kept in this browser. Participant recording and other captures must end before opening the workshop editor.
+
+
+## Effect library (App 1.4)
+
+Open **Workshop Editor**, select an effect in the grouped **Effect library** dropdown, then **Load template**. The code remains editable. **Restore previous draft** undoes the most recent template load or asset replacement; download work you want to keep before browsing multiple templates. **Copy project code** adds the `neon` and `MAT_URL` declarations. **Download project ZIP** includes p5.js 1.11.11, the client, both libraries, the mat, your current sketch and a README. It never exports pairing tokens or participant data. A full project runs in mouse mode using any ordinary local web server; live access is still restricted to the existing allowed origins.
+
+Templates: gaze dot; fading trail; particle trail; dwell-triggered particles; AOI events/progress; dwell image reveal; shaded eye pose illustration; binocular pupil timeline; live signal inspector; experimental blink reaction; physical donut designer; donut trail + sound; donut painting.
+
+**Replace image** accepts PNG/JPEG/WebP up to 2 MB in the image-reveal template. It embeds the image as a data URL, so the copied/exported sketch includes it. External assets are blocked inside the editor sandbox; a standalone project can use local assets via `p.loadImage()`.
+
+### Reusable helpers (`p5.neon-effects.js`)
+
+Load after `p5.neon.js`. They consume your existing `neon` instance and never open another connection.
+
+- `NeonEffects.read(neon)` returns fresh live eye/pupil/aperture data independently of surface location. Missing data is null. Mouse input never becomes physical measurements.
+- `new NeonEffects.Trail(lifetimeMs)`; `update(gazeOrNull,timeMs)` and `draw(p,color,width)`.
+- `new NeonEffects.Particles(limit)`; `emit(x,y,count)`, `update(timeMs)`, `draw(p,color)`. Coordinates are normalized to the canvas; particle count and lifetime are bounded.
+- `NeonEffects.regions(dwellMs)` supplies three example AOIs. Use `neon.on('enter'/'exit'/'dwell', handler)` for your own actions.
+- `NeonEffects.eyes(p,input,syntheticGaze)` draws native optical axes as a compatible shaded projection. This is not eye-camera video or a reconstructed eye mesh. Synthetic eyes are only drawn in mouse mode.
+- `new NeonEffects.BlinkGate()`; `setReference(openEyeApertureMm)` and `update(input,timeMs)` return closure/reopening **candidates**. The template collects a 2-second reference with at least 15 distinct valid samples. Closure <35% and reopening >70% of reference, lasting 60–700 ms, form a candidate; gaps >150 ms reset it. These are editable teaching heuristics, not validated thresholds or Pupil Labs' official detector. The scene-matched bridge is about 30 Hz, so short blinks may be missed. No inferred events from missing samples. For real use enable Compute eye state and verify your Companion supplies both eyelid apertures.
+
+Signals and simulations are explicitly labelled. No cognitive classification, raw eye-camera video, camera permissions or new recording are added by these templates. Pupil Labs' eye-state fields and aperture units: https://docs.pupil-labs.com/neon/data-collection/data-streams/

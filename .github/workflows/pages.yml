@@ -42,9 +42,10 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_study.py'
       - name: Prepare public files
         run: |
-          mkdir -p _site/vendor _site/library
+          mkdir -p _site/vendor _site/library/templates
           cp study-core.js study.js game-mix.js game-core.js game-mode.js gaze-art.js gaze-art-view.js soundscapes.js cognitive-evidence.js cognitive-panel.js eye-canvas.js dashboard.js dashboard.css index.html style.css core.js app.js patterns.js curve.js states.js studio.js pattern-view.js sample-controls.js midi-core.js music.js research-session.js public.js connector-client.js connector.js connector-guide.html mat.svg markers.svg monitor-mat.svg monitor.html _site/
-          cp library/layout-core.js library/layout-editor.js library/physical-template.js library/preview-runtime.js library/console.js library/editor.html library/editor.css library/editor.js library/template.js library/p5.neon.js library/index.html library/style.css library/example.js library/README.md library/LICENSE _site/library/
+          cp library/p5.neon-effects.js library/template-catalog.js library/project-zip.js library/catalog-editor.js library/layout-core.js library/layout-editor.js library/physical-template.js library/preview-runtime.js library/console.js library/editor.html library/editor.css library/editor.js library/template.js library/p5.neon.js library/index.html library/style.css library/example.js library/README.md library/LICENSE _site/library/
+          cp library/templates/*.js _site/library/templates/
           cp vendor/p5.min.js vendor/p5-LICENSE.txt _site/vendor/
           python3 scripts/build_p5_library.py --output _site/downloads/p5-neon-0.2.0.zip
           python3 scripts/build_connector.py --output _site/downloads/donut-midi-connector.zip

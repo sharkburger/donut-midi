@@ -12,19 +12,19 @@ const scriptURL=name=>new URL(name,location.href).href;
 function stop(){running=false;frame?.remove();frame=null;message.textContent='Stopped · draft preserved';}
 function run(){
  try{if(editor.value.includes('// DONUT_LAYOUT_START'))DonutLayout.read(editor.value);}catch(e){message.textContent=e.message;return;}
+ if(typeof syncTemplateControls==='function')syncTemplateControls();
  save();stop();activeCode=editor.value;message.textContent='Starting preview…';frame=document.createElement('iframe');frame.title='Editable p5 sketch preview';frame.sandbox='allow-scripts';
- frame.srcdoc=`<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' ${location.origin}; style-src 'unsafe-inline'; img-src data: blob:; connect-src data:;"><style>body{margin:0;font:12px system-ui;background:white}canvas{display:block}button{padding:9px;margin:8px}</style></head><body><script src="${scriptURL('../vendor/p5.min.js')}"></script><script src="${scriptURL('p5.neon.js')}"></script><script src="${scriptURL('preview-runtime.js')}"></script></body></html>`;
+ frame.srcdoc=`<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' ${location.origin}; style-src 'unsafe-inline'; img-src data: blob:; connect-src data:;"><style>body{margin:0;font:12px system-ui;background:white}canvas{display:block}button{padding:9px;margin:8px}</style></head><body><script src="${scriptURL('../vendor/p5.min.js')}"></script><script src="${scriptURL('p5.neon.js')}"></script><script src="${scriptURL('p5.neon-effects.js')}"></script><script src="${scriptURL('preview-runtime.js')}?v=catalog-1"></script></body></html>`;
  document.querySelector('#preview-slot').replaceChildren(frame);
 }
 window.addEventListener('message',e=>{
  if(!frame||e.source!==frame.contentWindow)return;
- const data=e.data;if(data?.type==='ready'){send({type:'start',code:activeCode,mat:activeCode.includes('// DONUT_LAYOUT_START')?markerURL:matURL,live:bridge.mode==='live'});}
+ const data=e.data;if(data?.type==='ready'){send({type:'start',code:activeCode,mat:(activeCode.includes('// DONUT_LAYOUT_START')||activeCode.includes('// @neon-template:'))?markerURL:matURL,live:bridge.mode==='live'});}
  else if(data?.type==='running'){running=true;message.textContent='Preview running';}
  else if(data?.type==='error'){message.textContent='Sketch error: '+String(data.text).slice(0,300);}
  else if(data?.type==='log'){message.textContent=String(data.text).slice(0,180);}
 });
 document.querySelector('#run').onclick=run;document.querySelector('#stop').onclick=stop;
-document.querySelector('#load-template').onclick=()=>{if(editor.value!==activeCode&&!confirm('Replace the current draft with the selected template? Download first if you want to keep it.'))return;editor.value=(document.querySelector('#template').value==='physical'?physicalTemplate:baseTemplate).replace('const PLAY_NOTES = true;',`const PLAY_NOTES = ${document.querySelector('#template').value!=='paint'};`);run();};
 editor.addEventListener('input',save);
 document.querySelector('#download').onclick=()=>{
  const prelude="// Standalone: load p5.js and p5.neon.js before this file.\nconst neon = new NeonP5();\nconst MAT_URL = '"+(editor.value.includes('// DONUT_LAYOUT_START')?'../markers.svg':'../monitor-mat.svg')+"';\n";
