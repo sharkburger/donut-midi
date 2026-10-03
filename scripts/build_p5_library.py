@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse
 import zipfile
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ['library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js',
+FILES = ['markers.svg', 'library/layout-core.js', 'library/layout-editor.js', 'library/physical-template.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js',
          'library/style.css', 'library/README.md', 'library/LICENSE',
          'connector-client.js', 'monitor-mat.svg', 'vendor/p5.min.js', 'vendor/p5-LICENSE.txt']
 if __name__ == '__main__':
