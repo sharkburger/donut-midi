@@ -5,7 +5,7 @@
  function validate(value){
   const v=JSON.parse(JSON.stringify(value));
   if(!Number.isFinite(v.widthCm)||v.widthCm<30||v.widthCm>120)throw Error('Mat width must be 30–120 cm. Height is always width × 2/3.');
-  if(typeof v.physical!=='boolean'||!Array.isArray(v.donuts)||v.donuts.length!==8)throw Error('Use eight donuts and a physical true/false setting.');
+  if(typeof v.physical!=='boolean'||!Array.isArray(v.donuts)||![1,8].includes(v.donuts.length))throw Error('Use one or eight donuts and a physical true/false setting.');
   const ids=new Set();
   for(const d of v.donuts){
    if(typeof d.id!=='string'||!d.id||ids.has(d.id))throw Error('Each donut needs a unique ID.');ids.add(d.id);
@@ -30,7 +30,7 @@
   let out=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="white"/>${markers}<g font-family="Arial,sans-serif" text-anchor="middle" fill="#342e28"><text x="600" y="90" font-size="25">DONUT MIDI · PHYSICAL SCORE</text><text x="600" y="125" font-size="15">${v.widthCm} × ${(v.widthCm*2/3).toFixed(1)} cm · Print at 100% / actual size</text>`;
   for(const [i,d] of v.donuts.entries()){
    const x=d.x*1200,y=d.y*800,r=d.r*1200;
-   out+=`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#888" stroke-width="2"/><path d="M ${x-8} ${y} h 16 M ${x} ${y-8} v 16" stroke="#888"/><text x="${x}" y="${y-8}" font-size="15">${i+1} · ${esc(d.name)}</text><text x="${x}" y="${y+20}" font-size="13">MIDI ${d.note}</text>`;
+   out+=`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#888" stroke-width="2"/><path d="M ${x-8} ${y} h 16 M ${x} ${y-8} v 16" stroke="#888"/><text x="${x}" y="${y-8}" font-size="15">${i+1} · ${esc(d.name)}</text><text x="${x}" y="${y+20}" font-size="13">${v.interaction==='scream'?'Look here for 3 seconds':`MIDI ${d.note}`}</text>`;
   }
   // The bar is exactly 10 cm at the requested output size.
   const bar=1200*10/v.widthCm;

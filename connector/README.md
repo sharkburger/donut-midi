@@ -36,3 +36,14 @@ This is a source/launcher package, not a signed native app and not a bundled Pyt
 
 ## Local study storage (1.3)
 Participant tests require explicit consent and Start in the webpage. Samples and self-reports then persist in SQLite, outside the app release folder. On macOS: `~/Library/Application Support/Donut MIDI/data/study.sqlite3`. Use Research to export all or individual CSV packages. No video or cloud upload. Updating the app preserves this data. Close the previous connector and reopen the updated app to enable the new endpoints.
+
+
+## Multi-device workshops (Connector 1.5)
+
+Pair the website with the connector on **this computer** first. Under **Choose my Neon**, scan, choose your Companion phone, and click **Use this Neon**. Compare its phone ID, IP and Neon module serial. No device is auto-selected, even if there is only one. A remembered selection reconnects automatically on the next launch.
+
+The choice is saved beside the local study database in `selected-neon.json` (not served by the web server). Identity is the Companion phone ID plus Neon module serial. An IP change may be resolved through discovery, but a reused IP, different phone or replaced module will never be accepted automatically. If the chosen device is unavailable, data stops and the connector waits for that same identity. **Forget selection** stops its stream and clears the saved choice. Selection is not an exclusive reservation across computers.
+
+Discovery requests status metadata only, not other participants’ eye/video streams. Devices without a valid connected Neon module serial are omitted: attach and power Neon, open Companion and scan again. Multicast discovery and phone-to-computer traffic must be allowed by the Wi-Fi network. Pairing codes authorize the local connector, not the glasses. Legacy standalone WebSocket bridge discovery is unchanged; use the 1.5 App/HTTP connector for explicit selection.
+
+Authenticated API: `GET /devices`; `POST /devices/scan {}`; `POST /devices/select {"id":"<id from scan>"}`; `POST /devices/forget {}`. Same strict loopback host/origin/token policy as gaze access. Health/sample advertise `device-selection-v1` and expose selected/connected identity. An arbitrary IP cannot be submitted to the selection endpoint. `--ip` explicitly probes and pins that phone/module on launch.

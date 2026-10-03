@@ -14,6 +14,20 @@ from websockets.asyncio.client import connect
 from websockets.exceptions import InvalidStatus
 
 class BridgeTests(unittest.TestCase):
+    def test_selected_identity_is_checked_before_any_stream_and_after_each_receive(self):
+        stop=threading.Event();packets=[];calls=[]
+        expected={'phoneId':'A','moduleSerial':'M1'}
+        device=SimpleNamespace(phone_id='B',module_serial='M2',close=lambda:None,receive_matched_scene_video_frame_and_gaze=lambda **kw:calls.append(1))
+        with patch.object(bridge,'Device',return_value=device):bridge.worker(packets.append,stop,'10.0.0.1',expected=expected,once=True)
+        self.assertEqual(calls,[]);self.assertFalse(any(p['type']=='sample' for p in packets))
+        device.phone_id='A';device.module_serial='M1';packets.clear()
+        def receive(**kw):
+            device.module_serial='M2'
+            return SimpleNamespace(bgr_pixels=generate()),SimpleNamespace(x=600,y=344,worn=True,timestamp_unix_seconds=1)
+        device.receive_matched_scene_video_frame_and_gaze=receive
+        with patch.object(bridge,'Device',return_value=device):bridge.worker(packets.append,stop,'10.0.0.1',expected=expected,once=True)
+        self.assertFalse(any(p['type']=='sample' for p in packets))
+
     def test_eye_pose_requires_complete_finite_geometry(self):
         self.assertEqual(bridge.eye_poses(SimpleNamespace()), {'left':None,'right':None})
         values={f'eyeball_center_left_{a}':v for a,v in zip('xyz',[-31,2,4])}

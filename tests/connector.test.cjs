@@ -55,5 +55,16 @@ test('default browser fetch retains its Window receiver',async()=>{
 test('connection loss clears gaze but lets a launched game phrase finish; free-play still stops',()=>{
  const fs=require('node:fs'),vm=require('node:vm'),s=fs.readFileSync(require.resolve('../connector.js'),'utf8');
  const code=s.slice(s.indexOf('const neonPackageClient='),s.indexOf('window.donutNeonConnector='));
- for(const game of [true,false]){let callbacks,stops=0;const els={};const context={NeonConnectorClient:class{constructor(c){callbacks=c;}},gameModeActive:()=>game,instrument:{stop:()=>stops++},dwell:{reset(){}},$:id=>els[id]??={},sample:{worn:true},sampleReceived:100,neonPackageActive:true};vm.createContext(context);vm.runInContext(code,context);callbacks.lost('test disconnect');assert.equal(context.sample,null);assert.equal(context.sampleReceived,0);assert.equal(context.connectionState,'Disconnected');assert.equal(stops,game?0:1);}
+ for(const game of [true,false]){let callbacks,stops=0;const els={};const context={window:{},NeonConnectorClient:class{constructor(c){callbacks=c;}},gameModeActive:()=>game,instrument:{stop:()=>stops++},dwell:{reset(){}},$:id=>els[id]??={},sample:{worn:true},sampleReceived:100,neonPackageActive:true};vm.createContext(context);vm.runInContext(code,context);callbacks.lost('test disconnect');assert.equal(context.sample,null);assert.equal(context.sampleReceived,0);assert.equal(context.connectionState,'Disconnected');assert.equal(stops,game?0:1);}
+});
+
+test('device control uses current loopback pairing and rejects stale responses or arbitrary paths',async()=>{
+ let options,requested;
+ const c=new NeonConnectorClient({sample:()=>{},fetch:async(url,opt)=>{requested=url;options=opt;return {ok:true,json:async()=>({connector:'donut-midi',capabilities:['device-selection-v1']})};}});
+ await assert.rejects(c.request('devices'),/Pair this computer/);
+ await c.start(token);clearTimeout(c.timer);
+ await c.request('devices/select',{id:'phone|module'});
+ assert.equal(requested,'http://127.0.0.1:8766/devices/select');assert.equal(options.headers.Authorization,'Bearer '+token);assert.equal(options.method,'POST');
+ await assert.rejects(c.request('https://evil.test'),/Unsupported/);
+ let resolve;c.fetcher=()=>new Promise(r=>resolve=r);const pending=c.request('devices');c.stop();resolve({ok:true,json:async()=>({})});await assert.rejects(pending,/Connection changed/);
 });

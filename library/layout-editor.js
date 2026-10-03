@@ -18,7 +18,7 @@ function layoutDraw(){
  // The designer never shows scanable tags; only the printed score has them in physical mode.
  for(const [x,y,label] of [[30,30,'0'],[1050,30,'1'],[1050,650,'2'],[30,650,'3']]){const r=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x,y,width:120,height:120,fill:'#ddd'}))r.setAttribute(k,v);svg.append(r);const t=document.createElementNS(ns,'text');t.setAttribute('x',x+60);t.setAttribute('y',y+72);t.textContent='TAG '+label;svg.append(t);}
  for(const [i,d] of layoutDraft.donuts.entries()){
-  const g=document.createElementNS(ns,'g'),circle=document.createElementNS(ns,'circle'),text=document.createElementNS(ns,'text');g.dataset.index=i;g.style.cursor='grab';circle.setAttribute('cx',d.x*1200);circle.setAttribute('cy',d.y*800);circle.setAttribute('r',d.r*1200);circle.setAttribute('fill',d.color);text.setAttribute('x',d.x*1200);text.setAttribute('y',d.y*800+5);text.textContent=(i+1)+' · '+d.note;g.append(circle,text);svg.append(g);
+  const g=document.createElementNS(ns,'g'),circle=document.createElementNS(ns,'circle'),text=document.createElementNS(ns,'text');g.dataset.index=i;g.style.cursor='grab';circle.setAttribute('cx',d.x*1200);circle.setAttribute('cy',d.y*800);circle.setAttribute('r',d.r*1200);circle.setAttribute('fill',d.color);text.setAttribute('x',d.x*1200);text.setAttribute('y',d.y*800+5);text.textContent=layoutDraft.interaction==='scream'?'3 s → scream':(i+1)+' · '+d.note;g.append(circle,text);svg.append(g);
  }
  let moving=null;
  svg.onpointerdown=e=>{const g=e.target.closest('[data-index]');if(!g)return;moving=Number(g.dataset.index);svg.setPointerCapture(e.pointerId);};
@@ -27,11 +27,12 @@ function layoutDraw(){
  document.querySelector('#layoutMap').replaceChildren(svg);
 }
 function layoutRows(){
+ document.querySelector('.layout-table th:last-child').hidden=layoutDraft.interaction==='scream';
  const rows=document.querySelector('#layoutRows');rows.replaceChildren();
  for(const [i,d] of layoutDraft.donuts.entries()){
   const tr=document.createElement('tr'),n=document.createElement('td');n.textContent=i+1;tr.append(n);
   for(const [key,value] of Object.entries({name:d.name,x:+(d.x*100).toFixed(2),y:+(d.y*100).toFixed(2),diameter:+(d.r*2*layoutDraft.widthCm).toFixed(2),note:d.note})){
-   const td=document.createElement('td'),input=document.createElement('input');input.type=key==='name'?'text':'number';input.value=value;input.dataset.key=key;input.setAttribute('aria-label',`Donut ${i+1} ${key}`);if(key!=='name')input.step=key==='note'?'1':'.1';
+   const td=document.createElement('td'),input=document.createElement('input');if(key==='note'&&layoutDraft.interaction==='scream')td.hidden=true;input.type=key==='name'?'text':'number';input.value=value;input.dataset.key=key;input.setAttribute('aria-label',`Donut ${i+1} ${key}`);if(key!=='name')input.step=key==='note'?'1':'.1';
    input.onchange=()=>{try{layoutDraft=readLayoutFields();layoutDraw();layoutMessage('Ready to apply.');}catch(e){layoutMessage(e.message);}};td.append(input);tr.append(td);
   }
   rows.append(tr);

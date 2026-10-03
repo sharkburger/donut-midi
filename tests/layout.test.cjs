@@ -20,3 +20,8 @@ test('physical template uses the same layout for dwell targets and actual sound 
  vm.runInNewContext(code,{neon,MAT_URL:'',AudioContext,console:{log(){}},p5:function(fn){const p={windowWidth:800,windowHeight:500,createCanvas:()=>({style(){}}),createButton:()=>({position(){},mousePressed(f){enable=f},html(){}})};fn(p);setup=p.setup;}});
  setup();assert.equal(regions[0].x,.2-.07);assert.equal(regions[0].note,72);assert.equal(regions[0].dwellMs,250);await enable();onDwell({region:regions[0]});assert.ok(Math.abs(frequency-523.2511)<.001);
 });
+
+test('single physical scream target exports the same center and radius used by the sketch',()=>{
+ const code=fs.readFileSync('library/templates/scream.js','utf8');const v=L.read(code);assert.equal(v.donuts.length,1);assert.equal(v.physical,true);assert.equal(v.donuts[0].x,.5);
+ const svg=L.svg(v,'');assert.match(svg,/width="500mm"/);assert.match(svg,/cx="600" cy="400" r="120"/);assert.match(svg,/Look here for 3 seconds/);assert(!svg.includes('MIDI 60'));
+});

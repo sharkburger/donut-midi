@@ -144,3 +144,9 @@ The editor supplies `DEFAULT_IMAGE_URL` as an embedded default image to its sand
 ### Resize code / preview (App 1.4.2)
 
 Drag the divider between code and preview to give the render more space. The full 3:2 mat and all four tags resize together; the preview grows vertically with its width instead of stopping at 420 px. Your split is remembered in this browser. Double-click the divider (or press Enter while focused) to return to 50/50; arrow keys adjust it, Shift+arrow makes larger steps. Small windows stack both panes. Resizing preserves the running sketch and shared Neon connection.
+
+### Physical donut → scream (App 1.5)
+
+Select **15 · Physical donut → scream**, then **Load template**. Use **Edit layout** to position the single target and **Download matching mat** to print its four-marker mat. The default mat is 50 × 33.3 cm with one 10 cm target in the centre. Print at actual size, place the donut within the target, and keep all four markers visible to Neon. Changing the physical position requires updating the layout and matching mat. The preview deliberately does not duplicate the printed tags.
+
+Connect your selected Neon, click **Enable scream** once, and look at the physical donut. After 3 seconds of continuous valid gaze inside its AOI, a synthesized cartoon scream starts; pitch and tremble intensify over the next 7 seconds with capped volume. Looking away, losing valid gaze, hiding the page or stopping the sketch resets and silences it. Sound comes from the computer or a connected speaker beside the donut. This measures AOI dwell, not a classified fixation or cognitive state. Mouse mode is available for testing. Edit `THRESHOLD_MS`, `RAMP_MS` and `DONUT_LAYOUT` to reuse it; project export includes the reusable `DwellRamp` and `ScreamVoice` helpers.

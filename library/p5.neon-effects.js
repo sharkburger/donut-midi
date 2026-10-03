@@ -66,6 +66,42 @@
    });p.pop();
   }
  }
+ // Continuous valid AOI dwell, not an eye-velocity fixation classifier.
+ class DwellRamp{
+  constructor(thresholdMs=3000,rampMs=7000){this.thresholdMs=thresholdMs;this.rampMs=rampMs;this.reset();}
+  reset(){this.elapsed=0;this.last=null;this.started=false;}
+  update(inside,now){
+   if(!inside||!Number.isFinite(now)){this.reset();return {elapsed:0,level:0,active:false};}
+   if(this.last!==null){const dt=now-this.last;if(dt<0||dt>250)this.reset();else this.elapsed+=dt;}
+   this.last=now;const active=this.elapsed>=this.thresholdMs;
+   return {elapsed:this.elapsed,active,level:active?Math.min(1,(this.elapsed-this.thresholdMs)/this.rampMs):0};
+  }
+ }
+ // A synthesized cartoon vowel scream. Pitch/roughness grow; output stays capped.
+ class ScreamVoice{
+  constructor(context){
+   this.ctx=context;this.nodes=[];this.sources=[];this.enabled=true;
+   const node=n=>{this.nodes.push(n);return n;};
+   this.output=node(context.createGain());this.output.gain.value=0;
+   const limiter=node(context.createDynamicsCompressor());limiter.threshold.value=-15;limiter.knee.value=12;limiter.ratio.value=10;limiter.attack.value=.003;limiter.release.value=.15;
+   this.output.connect(limiter);limiter.connect(context.destination);
+   this.osc=node(context.createOscillator());this.osc.type='sawtooth';this.osc.frequency.value=240;
+   this.vibrato=node(context.createOscillator());this.vibrato.frequency.value=5.5;
+   this.depth=node(context.createGain());this.depth.gain.value=5;this.vibrato.connect(this.depth);this.depth.connect(this.osc.frequency);
+   this.filters=[850,1450,2900].map((hz,i)=>{const f=node(context.createBiquadFilter());f.type='bandpass';f.frequency.value=hz;f.Q.value=[5,7,9][i];const g=node(context.createGain());g.gain.value=[.8,.5,.2][i];this.osc.connect(f);f.connect(g);g.connect(this.output);return f;});
+   this.sources=[this.osc,this.vibrato];for(const n of this.sources)n.start();
+  }
+  update(active,level,volume=.18){
+   if(!this.enabled)return;const t=this.ctx.currentTime,v=Math.max(0,Math.min(.3,volume)),u=Math.max(0,Math.min(1,level));
+   const g=this.output.gain;g.cancelScheduledValues(t);g.setTargetAtTime(active?v*(.18+.35*u):0,t,.035);
+   // If rendering or live updates stop, silence without needing another draw callback.
+   if(active){g.setTargetAtTime(0,t+.15,.025);g.setValueAtTime(0,t+.3);}
+   this.osc.frequency.setTargetAtTime(230+540*u+35*Math.sin(t*(5+u*5)),t,.05);
+   this.depth.gain.setTargetAtTime(5+55*u,t,.05);this.vibrato.frequency.setTargetAtTime(5.5+7*u,t,.05);
+   this.filters[0].frequency.setTargetAtTime(850+200*u,t,.05);
+  }
+  dispose(){if(!this.enabled)return;this.update(false,0);this.enabled=false;for(const s of this.sources){try{s.stop();}catch{}}for(const n of this.nodes)n.disconnect();}
+ }
  // Closed -> reopened candidate after individual open-eye reference. Not Pupil Labs' blink detector.
  class BlinkGate{
   constructor(){this.reference=null;this.lastStamp=null;this.lastAt=null;this.closedAt=null;this.armed=false;this.lastBlink=-Infinity;}
@@ -105,6 +141,6 @@
    p.fill('white');p.circle(x+dx-r*.12,y+dy-r*.12,r*.10);
   }p.pop();
  }
- const api={read,Trail,Particles,PixelMirror,BlinkGate,canvas,resize,begin,clip,inside,dot,regions,boxes,label,eyes};
+ const api={read,Trail,Particles,PixelMirror,DwellRamp,ScreamVoice,BlinkGate,canvas,resize,begin,clip,inside,dot,regions,boxes,label,eyes};
  if(typeof module!=='undefined')module.exports=api;else root.NeonEffects=api;
 })(typeof window!=='undefined'?window:globalThis);

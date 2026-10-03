@@ -23,22 +23,35 @@ def nullable(value):
         return None
 
 
-def worker(publish, stop, ip):
+def identity_matches(device, expected):
+    return (str(device.phone_id)==expected['phoneId'] and str(device.module_serial)==expected['moduleSerial'])
+
+
+def worker(publish, stop, ip, expected=None, port=8080, once=False):
     while not stop.is_set():
         device=None
         try:
             publish({'type':'status','message':'Searching for Neon. Open Companion and use the same local network.'})
-            device=Device(address=ip,port=8080) if ip else discover_one_device(max_search_duration_seconds=10)
+            device=Device(address=ip,port=port) if ip else discover_one_device(max_search_duration_seconds=10)
             if device is None:
                 stop.wait(3)
                 continue
+            if stop.is_set():return
+            if expected and not identity_matches(device,expected):raise ValueError('Selected device identity changed')
             mapper=SurfaceMapper()
+            missing=0
             publish({'type':'status','message':'Neon found. Wear the glasses and keep all four mat markers visible.'})
             while not stop.is_set():
+                if expected and not identity_matches(device,expected):raise ValueError('Selected device identity changed')
                 pair=device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=2)
+                if stop.is_set():return
+                if expected and not identity_matches(device,expected):raise ValueError('Selected device identity changed')
                 if pair is None:
+                    missing+=1
+                    if once and missing>=3:raise TimeoutError('No fresh scene/gaze stream')
                     publish({'type':'status','message':'Waiting for scene and gaze data; note selection is paused.'})
                     continue
+                missing=0
                 frame,gaze=pair
                 point,count=mapper.map(frame.bgr_pixels,gaze.x,gaze.y)
                 publish({'type':'sample','source':'neon','deviceTimestamp':nullable(gaze.timestamp_unix_seconds),
@@ -50,6 +63,7 @@ def worker(publish, stop, ip):
                     'eyes':eye_poses(gaze)})
         except Exception as exc:
             publish({'type':'status','message':f'Neon disconnected: {type(exc).__name__}: {exc}. Retrying in 3 seconds.'})
+            if once:return
             stop.wait(3)
         finally:
             if device is not None:

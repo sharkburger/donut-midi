@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import plistlib
 import shutil
+import struct
 import subprocess
 import tempfile
 from pathlib import Path
@@ -30,8 +31,20 @@ def build(output, make_dmg=True):
                 subprocess.run(['/usr/bin/sips', '-z', str(pixels), str(pixels),
                                 str(ROOT / 'connector/macos/assets/donut-eye.png'),
                                 '--out', str(target)], check=True, stdout=subprocess.DEVNULL)
-        subprocess.run(['/usr/bin/iconutil', '-c', 'icns', str(iconset),
-                        '-o', str(resources / 'DonutMIDI.icns')], check=True)
+        result = subprocess.run(['/usr/bin/iconutil', '-c', 'icns', str(iconset),
+                                 '-o', str(resources / 'DonutMIDI.icns')])
+        if result.returncode:
+            # Some sandboxed macOS hosts cannot use iconutil's image service.
+            # ICNS supports PNG payloads directly for these standard sizes.
+            chunks = []
+            for kind, name in [('icp4', 'icon_16x16.png'), ('icp5', 'icon_32x32.png'),
+                               ('icp6', 'icon_32x32@2x.png'), ('ic07', 'icon_128x128.png'),
+                               ('ic08', 'icon_256x256.png'), ('ic09', 'icon_512x512.png'),
+                               ('ic10', 'icon_512x512@2x.png')]:
+                data = (iconset / name).read_bytes()
+                chunks.append(kind.encode() + struct.pack('>I', len(data) + 8) + data)
+            body = b''.join(chunks)
+            (resources / 'DonutMIDI.icns').write_bytes(b'icns' + struct.pack('>I', len(body) + 8) + body)
         # AppleScript applets also name an icon via CFBundleIconName.
         # Replace their legacy resource as well so every lookup resolves to the artwork.
         shutil.copyfile(resources / 'DonutMIDI.icns', resources / 'applet.icns')
@@ -50,7 +63,7 @@ def build(output, make_dmg=True):
             info = plistlib.load(f)
         info.update(CFBundleIdentifier='io.github.sharkburger.donut-midi-neon',
                     CFBundleDisplayName='Donut MIDI Neon', CFBundleName='Donut MIDI Neon',
-                    CFBundleShortVersionString='1.4.2', CFBundleVersion='13',
+                    CFBundleShortVersionString='1.5.0', CFBundleVersion='14',
                     CFBundleIconFile='DonutMIDI.icns', CFBundleIconName='DonutMIDI',
                     NSAppleEventsUsageDescription='Open Terminal to run the local Neon connector and show its status.')
         with plist_path.open('wb') as f:

@@ -15,7 +15,7 @@ document.querySelector('#restore-draft').onclick=()=>{if(previousDraft===null)re
 document.querySelector('#load-template').onclick=async()=>{
  const button=document.querySelector('#load-template'),t=selectedTemplate();button.disabled=true;
  try{
-  let code=templateCache.get(t.file);if(!code){const response=await fetch(t.file+'?v=mirror-1');if(!response.ok)throw Error('Template could not load');code=await response.text();templateCache.set(t.file,code);}
+  let code=templateCache.get(t.file);if(!code){const response=await fetch(t.file+'?v=scream-1');if(!response.ok)throw Error('Template could not load');code=await response.text();templateCache.set(t.file,code);}
   backupDraft();if(t.id==='paint')code=code.replace('const PLAY_NOTES = true;','const PLAY_NOTES = false;');
   // This comment also selects the marker-only mat in the preview.
   if(t.file.startsWith('templates/')&&!code.includes('// @neon-template:'))code='// @neon-template: '+t.id+'\n'+code;

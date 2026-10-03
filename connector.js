@@ -4,12 +4,13 @@ connectorPanel.innerHTML=`<h2>Connect your Neon</h2><p>1. <a href="https://shark
 document.querySelector('.intro').after(connectorPanel);
 let neonPackageActive=false;
 const neonPackageClient=new NeonConnectorClient({
- sample:(s,age)=>{if(source!=='live')return;receive(s);sampleReceived-=age;connectionState='Receiving via local connector';$('pairStatus').textContent=`Live Neon · ${s.worn?'glasses worn':'glasses not worn'} · ${s.markerCount??0}/4 markers · ${s.surfaceValid?'mat located':'mat not located'}`;},
- status:(message,first)=>{connectionState='Connector connected';$('connectionInfo').textContent=message;$('pairStatus').textContent=message;if(first){neonPackageActive=true;toast('Connector paired. Enable sound, then open the screen mat.');}},
- lost:message=>{neonPackageActive=false;sample=null;sampleReceived=0;if(typeof gameModeActive!=='function'||!gameModeActive())instrument.stop();dwell.reset();connectionState='Disconnected';$('pairStatus').textContent=message+' If the browser blocks local access, open the local fallback link from the connector.';$('connectionInfo').textContent=message;}
+ metadata:(data,first)=>window.updateNeonDevicePanel?.(data,first),
+ sample:(s,age)=>{if(source!=='live')return;receive(s);sampleReceived-=age;connectionState='Receiving via local connector'+(window.neonDeviceLabel?' · '+window.neonDeviceLabel:'');$('pairStatus').textContent=`Live Neon · ${s.worn?'glasses worn':'glasses not worn'} · ${s.markerCount??0}/4 markers · ${s.surfaceValid?'mat located':'mat not located'}`;},
+ status:(message,first)=>{connectionState='Connector connected';$('connectionInfo').textContent=message;$('pairStatus').textContent=message;if(first){neonPackageActive=true;toast('Connector paired. Choose your Neon, then enable sound.');}},
+ lost:message=>{window.neonDevicePanelDisconnected?.();neonPackageActive=false;sample=null;sampleReceived=0;if(typeof gameModeActive!=='function'||!gameModeActive())instrument.stop();dwell.reset();connectionState='Disconnected';$('pairStatus').textContent=message+' If the browser blocks local access, open the local fallback link from the connector.';$('connectionInfo').textContent=message;}
 });
 window.donutNeonConnector=neonPackageClient;
-function stopNeonPackage(){if(window.donutNeonConnector){window.donutNeonConnector.stop();neonPackageActive=false;}}
+function stopNeonPackage(){if(window.donutNeonConnector){window.donutNeonConnector.stop();window.neonDevicePanelDisconnected?.();neonPackageActive=false;}}
 async function connectNeonPackage(){
  if(typeof researchRunning==='function'&&researchRunning()){toast('End the research session before changing the connection.');return;}
  const token=$('pairCode').value.trim(),port=Number($('pairPort').value);
