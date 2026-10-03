@@ -114,7 +114,7 @@ Open **Workshop Editor**, select an effect in the grouped **Effect library** dro
 
 Templates: gaze dot; fading trail; particle trail; dwell-triggered particles; AOI events/progress; dwell image reveal; shaded eye pose illustration; binocular pupil timeline; live signal inspector; experimental blink reaction; physical donut designer; donut trail + sound; donut painting.
 
-**Replace image** accepts PNG/JPEG/WebP up to 2 MB in the image-reveal template. It embeds the image as a data URL, so the copied/exported sketch includes it. External assets are blocked inside the editor sandbox; a standalone project can use local assets via `p.loadImage()`.
+**Replace image** accepts PNG/JPEG/WebP up to 2 MB in the image-reveal and pixel-mirror templates. It embeds the image as a data URL, so the copied/exported sketch includes it. External assets are blocked inside the editor sandbox; a standalone project can use local assets via `p.loadImage()`.
 
 ### Reusable helpers (`p5.neon-effects.js`)
 
@@ -128,3 +128,14 @@ Load after `p5.neon.js`. They consume your existing `neon` instance and never op
 - `new NeonEffects.BlinkGate()`; `setReference(openEyeApertureMm)` and `update(input,timeMs)` return closure/reopening **candidates**. The template collects a 2-second reference with at least 15 distinct valid samples. Closure <35% and reopening >70% of reference, lasting 60–700 ms, form a candidate; gaps >150 ms reset it. These are editable teaching heuristics, not validated thresholds or Pupil Labs' official detector. The scene-matched bridge is about 30 Hz, so short blinks may be missed. No inferred events from missing samples. For real use enable Compute eye state and verify your Companion supplies both eyelid apertures.
 
 Signals and simulations are explicitly labelled. No cognitive classification, raw eye-camera video, camera permissions or new recording are added by these templates. Pupil Labs' eye-state fields and aperture units: https://docs.pupil-labs.com/neon/data-collection/data-streams/
+
+
+### Gaze pixel mirror (App 1.4.1)
+
+Choose **14 · Gaze pixel mirror** under **Regions & interaction**, then **Load template**. The default donut image is sampled into colored tiles; **Replace image** embeds a PNG/JPEG/WebP (up to 2 MB). The left slider changes columns (16–64); the right changes the gaze brush radius (1–5 tiles). Look or hover on the image: nearby tiles turn around a vertical hinge to a warm wood-colored back. They return after looking away. No click or dwell event is required. **Reset tiles** restores the image; edit `SPEED_MS` and `RETURN_MS` for animation timing. Pixel density changes reset the tiles.
+
+This is an original gaze-controlled digital study inspired by [Daniel Rozin’s Wooden Mirror (1999)](https://www.smoothware.com/danny/woodenmirrormov.html), not a camera mirror or a reproduction of its mechanical system. The four corner tags stay visible. Lost/unmapped gaze stops new flips and the tiles settle.
+
+`new NeonEffects.PixelMirror({columns,radius,speedMs,returnMs})` provides `setImage(p5Image)`, `update(gazeOrNull,timeMs)`, `draw(p)`, and `reset()`. Image colors are sampled once per image/density change; each animation frame uses the cached grid. The helper exposes `bounds` in normalized surface coordinates, so you can reuse the same image AOI in another sketch.
+
+The editor supplies `DEFAULT_IMAGE_URL` as an embedded default image to its sandbox. Copy/sketch download includes the public image URL; project ZIP includes `donut-eye.png` and a local URL. Custom uploaded image data is preserved in all exports. No images or gaze are uploaded by Replace image.

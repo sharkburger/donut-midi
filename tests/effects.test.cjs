@@ -20,9 +20,20 @@ test('particles and trails expire and remain bounded; gaze gaps do not connect l
 test('every workshop effect loads and renders in mouse and missing-live modes',()=>{
  for(const file of fs.readdirSync('library/templates')){
   let p,now=0;const n=new Neon({clock:()=>now});n.useMouse=()=>n.mode='mouse';
-  const noop=()=>{},controls=()=>({elt:{},position:noop,attribute:noop,mousePressed:noop,value:()=>4});
-  const context={neon:n,MAT_URL:'mat',NeonEffects:E,console:{log:noop},p5:function(fn){p=new Proxy({windowWidth:900,windowHeight:600,width:800,height:533,CENTER:'center',drawingContext:new Proxy({},{get:()=>noop}),millis:()=>now,constrain:(x,a,b)=>Math.max(a,Math.min(b,x)),color:()=>({setAlpha:noop}),createCanvas(w,h){p.width=w;p.height=h;return {style:noop}},createButton:controls,createSlider:controls,loadImage:()=>({width:100,height:100})},{get:(o,k)=>k in o?o[k]:noop});fn(p);}};
+  const noop=()=>{},controls=()=>({elt:{},position:noop,style:noop,attribute:noop,mousePressed:noop,value:()=>4});
+  const context={neon:n,MAT_URL:'mat',DEFAULT_IMAGE_URL:'donut',NeonEffects:E,console:{log:noop},p5:function(fn){p=new Proxy({windowWidth:900,windowHeight:600,width:800,height:533,CENTER:'center',drawingContext:new Proxy({},{get:()=>noop}),millis:()=>now,constrain:(x,a,b)=>Math.max(a,Math.min(b,x)),color:()=>({setAlpha:noop}),createCanvas(w,h){p.width=w;p.height=h;return {style:noop}},createButton:controls,createSpan:controls,createSlider:controls,loadImage:()=>({width:100,height:100,get:()=>({resize:noop,loadPixels:noop,pixels:[]})})},{get:(o,k)=>k in o?o[k]:noop});fn(p);}};
   assert.doesNotThrow(()=>vm.runInNewContext(fs.readFileSync('library/templates/'+file,'utf8'),context),file);p.preload();p.setup();n.accept({x:.4,y:.4,worn:true,surfaceValid:true});for(let i=0;i<4;i++){now+=100;p.draw();}n.mode='live';now+=1000;assert.doesNotThrow(()=>p.draw(),file+' missing live');
  }
 });
 test('project zip has valid signatures and excludes unintended files',async()=>{const data=new Uint8Array(await zip({'sketch.js':'// test','README.txt':'hello'}).arrayBuffer());assert.equal(new DataView(data.buffer).getUint32(0,true),0x04034b50);assert.equal(new DataView(data.buffer).getUint32(data.length-22,true),0x06054b50);assert.throws(()=>zip({'../secrets':'no'}));});
+
+test('pixel mirror samples image colors once, flips only gaze neighbors, and restores on lost input',()=>{
+ let samples=0;const image={width:200,height:100,get(){samples++;return {resize(w,h){this.pixels=Array.from({length:w*h*4},(_,i)=>[240,60,20,128][i%4]);},loadPixels(){}};}};
+ const mirror=new E.PixelMirror({columns:20,radius:1.5,returnMs:100,speedMs:100});mirror.setImage(image);
+ assert.equal(samples,1);assert.equal(mirror.tiles.length,200);assert.equal(mirror.tiles[0].color[0],243);
+ const b=mirror.bounds,g={x:b.x+b.width/2,y:b.y+b.height/2};
+ mirror.update(null,0);mirror.update(g,50);assert(mirror.tiles.some(t=>t.flip>0));assert.equal(mirror.tiles[0].flip,0);
+ const peak=Math.max(...mirror.tiles.map(t=>t.flip));mirror.update({x:0,y:0},100);for(let t=200;t<1200;t+=50)mirror.update(null,t);
+ assert(Math.max(...mirror.tiles.map(t=>t.flip))<peak*.01);assert.equal(samples,1);
+ mirror.reset();assert(mirror.tiles.every(t=>t.flip===0));assert(b.y>=.2&&b.y+b.height<.8);
+});

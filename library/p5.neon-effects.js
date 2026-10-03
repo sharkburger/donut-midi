@@ -22,6 +22,50 @@
   update(now){const dt=this.last===null?0:Math.max(0,Math.min(.05,(now-this.last)/1000));this.last=now;for(const a of this.items){a.x+=a.vx*dt;a.y+=a.vy*dt;a.life-=dt;}this.items=this.items.filter(a=>a.life>0);}
   draw(p,color='#008d95'){p.push();p.noStroke();for(const a of this.items){const c=p.color(color);c.setAlpha(220*a.life);p.fill(c);p.circle(a.x*p.width,a.y*p.height,2+6*a.life);}p.pop();}
  }
+ // Color tiles with a vertical hinge. No WebGL, camera or extra connection.
+ class PixelMirror{
+  constructor({columns=36,radius=2.4,speedMs=190,returnMs=650}={}){this.columns=columns;this.radius=radius;this.speedMs=speedMs;this.returnMs=returnMs;this.tiles=[];this.last=null;}
+  setImage(image){
+   if(!image?.width||!image?.height)return;
+   const aspect=image.width/image.height;
+   this.cols=Math.max(8,Math.min(72,Math.round(this.columns)));
+   this.rows=Math.max(1,Math.min(96,Math.round(this.cols/aspect)));
+   const thumb=image.get();thumb.resize(this.cols,this.rows);thumb.loadPixels();
+   this.tiles=Array.from({length:this.cols*this.rows},(_,i)=>{
+    const k=i*4,a=(thumb.pixels[k+3]??255)/255;
+    const color=[0,1,2].map(c=>Math.round((thumb.pixels[k+c]??0)*a+246*(1-a)));
+    return {color,flip:0,lastHit:-Infinity};
+   });
+   // Fit the whole image into a marker-safe rectangle on the fixed 3:2 surface.
+   let width=.68,height=width*1.5/aspect;if(height>.54){height=.54;width=height*aspect/1.5;}
+   this.bounds={x:(1-width)/2,y:.205+(.54-height)/2,width,height};this.last=null;
+  }
+  reset(){for(const tile of this.tiles){tile.flip=0;tile.lastHit=-Infinity;}this.last=null;}
+  update(gaze,now){
+   if(!this.bounds)return;
+   const b=this.bounds,dt=this.last===null?0:Math.max(0,Math.min(50,now-this.last));this.last=now;
+   const valid=gaze&&Number.isFinite(gaze.x)&&Number.isFinite(gaze.y)&&gaze.x>=b.x&&gaze.x<=b.x+b.width&&gaze.y>=b.y&&gaze.y<=b.y+b.height;
+   const gx=valid?(gaze.x-b.x)/b.width*this.cols:-1000,gy=valid?(gaze.y-b.y)/b.height*this.rows:-1000;
+   const ease=1-Math.exp(-dt/Math.max(30,this.speedMs));
+   this.tiles.forEach((tile,i)=>{
+    if(valid&&Math.hypot(i%this.cols+.5-gx,Math.floor(i/this.cols)+.5-gy)<=this.radius)tile.lastHit=now;
+    const target=now-tile.lastHit<this.returnMs?1:0;
+    tile.flip+=(target-tile.flip)*ease;
+   });
+  }
+  draw(p){
+   if(!this.bounds)return;const b=this.bounds,cw=b.width*p.width/this.cols,ch=b.height*p.height/this.rows;
+   p.push();p.noStroke();p.fill('#302922');p.rect(b.x*p.width-4,b.y*p.height-4,b.width*p.width+8,b.height*p.height+8,5);
+   this.tiles.forEach((tile,i)=>{
+    const x=b.x*p.width+(i%this.cols+.5)*cw,y=b.y*p.height+(Math.floor(i/this.cols)+.5)*ch;
+    const turn=Math.cos(Math.PI*tile.flip),w=Math.max(.8,(cw-.8)*Math.abs(turn)),h=Math.max(.8,ch-.8);
+    const base=turn>=0?tile.color:tile.color.map((v,c)=>v*.24+[154,107,57][c]*.76),light=.65+.35*Math.abs(turn);
+    p.fill(12,9,7,100);p.rect(x-cw/2+2,y-h/2+2,cw-.8,h);
+    p.fill(...base.map(v=>v*light));p.rect(x-w/2,y-h/2,w,h,.5);
+    p.fill(255,240,212,turn>=0?32:65);p.rect(x-w/2,y-h/2,Math.min(1,w),h);
+   });p.pop();
+  }
+ }
  // Closed -> reopened candidate after individual open-eye reference. Not Pupil Labs' blink detector.
  class BlinkGate{
   constructor(){this.reference=null;this.lastStamp=null;this.lastAt=null;this.closedAt=null;this.armed=false;this.lastBlink=-Infinity;}
@@ -61,6 +105,6 @@
    p.fill('white');p.circle(x+dx-r*.12,y+dy-r*.12,r*.10);
   }p.pop();
  }
- const api={read,Trail,Particles,BlinkGate,canvas,resize,begin,clip,inside,dot,regions,boxes,label,eyes};
+ const api={read,Trail,Particles,PixelMirror,BlinkGate,canvas,resize,begin,clip,inside,dot,regions,boxes,label,eyes};
  if(typeof module!=='undefined')module.exports=api;else root.NeonEffects=api;
 })(typeof window!=='undefined'?window:globalThis);
