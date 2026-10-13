@@ -1,33 +1,37 @@
-/* A runnable p5.js instance-mode sketch using only the public NeonP5 API. */
-const neon = new NeonP5();
+/* A runnable p5.js instance-mode sketch using the p5.neon addon API. */
+let neon;
 let mode='paint',canvas,marks=[],audio=null,soundEnabled=false,lastPoint=null;
-const status=document.querySelector('#status'),eventLabel=document.querySelector('#event');
+let status;const eventLabel=document.querySelector('#event');
 const centers=[.185,.395,.605,.815],notes=[60,62,64,65,67,69,71,72];
-neon.setRegions(notes.map((note,i)=>({id:'note-'+i,x:centers[i%4]-.07,y:(i<4?.32:.65)-.1,width:.14,height:.2,dwellMs:500,note})));
-neon.on('status',message=>status.textContent=message);
-neon.on('error',message=>{status.textContent=message;eventLabel.textContent='Disconnected · no gaze data';});
-neon.on('dwell',({region})=>{
-  if(mode!=='music')return;
-  eventLabel.textContent=`Dwell → MIDI note ${region.note}${soundEnabled?'':' · enable sound to hear it'}`;
-  if(!soundEnabled||audio?.state!=='running')return;
-  const oscillator=audio.createOscillator(),gain=audio.createGain(),now=audio.currentTime;
-  oscillator.type='sine';oscillator.frequency.value=440*2**((region.note-69)/12);
-  gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(.15,now+.015);gain.gain.exponentialRampToValueAtTime(.001,now+.6);
-  oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(now);oscillator.stop(now+.65);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
-});
-const fragment=new URLSearchParams(location.hash.slice(1));
-if(fragment.has('pair')){document.querySelector('#code').value=fragment.get('pair');document.querySelector('#port').value=fragment.get('port')||8766;history.replaceState(null,'',location.pathname+location.search);}
-document.querySelector('#connect').onclick=async()=>{lastPoint=null;status.textContent='Connecting…';try{await neon.connect({code:document.querySelector('#code').value.trim(),port:Number(document.querySelector('#port').value)});}catch(error){status.textContent=error.message;}};
-document.querySelector('#mouse').onclick=()=>{neon.useMouse(canvas);lastPoint=null;status.textContent='Mouse simulation · no biometric data';};
+
 document.querySelector('#clear').onclick=()=>{marks=[];lastPoint=null;};
 document.querySelector('#audio').onclick=async()=>{try{audio??=new AudioContext();if(soundEnabled){soundEnabled=false;await audio.suspend();}else{await audio.resume();soundEnabled=true;}document.querySelector('#audio').textContent=soundEnabled?'Mute sound':'Enable sound';}catch(error){status.textContent=error.message;}};
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{mode=b.dataset.mode;lastPoint=null;neon.resetDwell();for(const tab of document.querySelectorAll('[data-mode]'))tab.setAttribute('aria-pressed',String(tab===b));eventLabel.textContent=mode==='music'?'Hold on a donut for 500 ms':'Gaze leaves a trail';};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){audio?.suspend();soundEnabled=false;document.querySelector('#audio').textContent='Enable sound';lastPoint=null;}});
-window.addEventListener('pagehide',()=>neon.dispose());
+window.addEventListener('pagehide',()=>neon?.dispose());
 new p5(p=>{
   let mat,observer;
   p.preload=()=>{mat=p.loadImage('../monitor-mat.svg');};
-  p.setup=()=>{const host=document.querySelector('#canvas');const size=()=>Math.min(host.clientWidth,host.clientHeight*1.5);canvas=p.createCanvas(size(),size()/1.5).parent(host);neon.useMouse(canvas);observer=new ResizeObserver(()=>p.resizeCanvas(size(),size()/1.5));observer.observe(host);};
+  p.setup=()=>{
+    neon=p.createNeonTracker();
+    const controls=p.createNeonControls(neon,{parent:'#neon-controls'});
+    status=controls.element.querySelector('output');
+    neon.setRegions(notes.map((note,i)=>({id:'note-'+i,x:centers[i%4]-.07,y:(i<4?.32:.65)-.1,width:.14,height:.2,dwellMs:500,note})));
+    neon.on('status',message=>status.textContent=message);
+    neon.on('error',message=>{status.textContent=message;eventLabel.textContent='Disconnected · no gaze data';});
+    neon.on('dwell',({region})=>{
+      if(mode!=='music')return;
+      eventLabel.textContent=`Dwell → MIDI note ${region.note}${soundEnabled?'':' · enable sound to hear it'}`;
+      if(!soundEnabled||audio?.state!=='running')return;
+      const oscillator=audio.createOscillator(),gain=audio.createGain(),now=audio.currentTime;
+      oscillator.type='sine';oscillator.frequency.value=440*2**((region.note-69)/12);
+      gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(.15,now+.015);gain.gain.exponentialRampToValueAtTime(.001,now+.6);
+      oscillator.connect(gain);gain.connect(audio.destination);oscillator.start(now);oscillator.stop(now+.65);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
+    });
+    const host=document.querySelector('#canvas'),size=()=>Math.min(host.clientWidth,host.clientHeight*1.5);
+    canvas=p.createCanvas(size(),size()/1.5).parent(host);neon.useMouse(canvas);
+    observer=new ResizeObserver(()=>p.resizeCanvas(size(),size()/1.5));observer.observe(host);
+  };
   p.draw=()=>{
     p.background(255);p.image(mat,0,0,p.width,p.height);const gaze=neon.update();
     const inside=gaze&&gaze.x>.13&&gaze.x<.87&&gaze.y>.2&&gaze.y<.8;

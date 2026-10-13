@@ -28,6 +28,10 @@ class ConnectorTests(unittest.TestCase):
         self.assertEqual(self.request(headers={'Origin':connector.PUBLIC_ORIGIN})[0],401)
         self.assertEqual(self.request(headers=self.auth('https://evil.example'))[0],403)
         self.assertEqual(self.request(headers=self.auth(connector.PUBLIC_ORIGIN+'.evil.example'))[0],403)
+        p5_origin='https://preview.p5js.org'
+        status,headers,_=self.request(headers=self.auth(p5_origin))
+        self.assertEqual(status,200);self.assertEqual(headers['Access-Control-Allow-Origin'],p5_origin)
+        self.assertEqual(self.request(headers=self.auth('https://preview.p5js.org.evil.example'))[0],403)
         self.assertEqual(self.request(headers={**self.auth(),'Authorization':'Bearer wrong'})[0],401)
         status,headers,data=self.request(headers=self.auth());self.assertEqual(status,200)
         self.assertEqual(headers['Access-Control-Allow-Origin'],connector.PUBLIC_ORIGIN)

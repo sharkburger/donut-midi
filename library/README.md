@@ -4,33 +4,36 @@ A small MIT-licensed JavaScript library for eye-driven p5.js sketches. This is a
 
 [Run the examples](https://sharkburger.github.io/donut-midi/library/) · [Full Donut MIDI](https://sharkburger.github.io/donut-midi/?v=console-2)
 
-## What works in v0.1
+## What works in v0.2
 
 - Pair with the existing Donut MIDI Neon connector (no protocol change).
 - Read normalized surface gaze and optional pupil diameter.
 - Define rectangular AOIs and receive enter, exit and dwell events.
 - Simulate gaze with the mouse, including stationary dwell.
 - Run Gaze painting and Dwell instrument examples with p5.js 1.11.11.
+- Create an instance-scoped tracker through the p5 sketch API.
 
-The full Donut MIDI app is unchanged and has not yet been migrated to this library. There is no cognitive-state classifier in this package. Eye features are not diagnoses.
+The app behavior remains unchanged; its pure phrase-game, accompaniment, soundscape, MIDI output and pupil-evidence modules are now shared from library/modules. The app-specific performance controls and participant-study interface are still being migrated. There is no cognitive-state classifier in this package. Eye features are not diagnoses.
 
 ## Quick start
 
-Copy `p5.neon.js` and the repository's `connector-client.js` into your sketch. Load them after p5.js and before your sketch:
+Copy `connector-client.js`, `p5.neon.js`, and `p5.neon-addon.js` into your sketch. Load them after p5.js and before your sketch:
 
 ```html
 <script src="p5.min.js"></script>
 <script src="connector-client.js"></script>
 <script src="p5.neon.js"></script>
+<script src="p5.neon-addon.js"></script>
 <script src="sketch.js"></script>
 ```
 
 A complete mouse example in p5 global mode:
 
 ```js
-const neon = new NeonP5();
+let neon;
 function setup() {
   const canvas = createCanvas(900, 600);
+  neon = createNeonTracker();
   neon.useMouse(canvas);
   neon.setRegions([
     { id: 'center', x: .4, y: .4, width: .2, height: .2, dwellMs: 500 }
@@ -83,7 +86,7 @@ Events: `sample` receives the latest sample; `status` and `error` receive a mess
 
 ## Distribution
 
-This release is a plain script exposing `NeonP5`, usable alongside p5 global or instance mode. It does not patch p5 prototypes and is not yet listed in the p5 library directory or npm. The tested p5 version is 1.11.11. `connector-client.js` is a required additional script for live input; mouse mode is standalone. See `example.js` for the full runnable sketch. No credentials or gaze data are uploaded to GitHub by the library.
+The core remains a plain script exposing `NeonP5`; the optional `p5.neon-addon.js` adapter adds `createNeonTracker()` to p5 sketches and automatically disposes trackers when the sketch is removed. It uses p5.js 2 `registerAddon()` where available and the p5.js 1 prototype lifecycle as a compatibility path. This project is not yet listed in the p5 library directory or npm; the release checklist is in ROADMAP.md. The p5 site asks maintainers to submit a library-listing pull request after the library is ready: https://p5js.org/contribute/creating_libraries/. The tested p5 version is 1.11.11; the addon adapter also uses p5.js 2 registration when present. `connector-client.js` is a required additional script for live input; mouse mode is standalone. See `example.js` for the full runnable sketch. No credentials or gaze data are uploaded to GitHub by the library.
 
 
 ## Fullscreen console and editable templates (0.2)
@@ -94,7 +97,7 @@ Mouse mode shows explicitly labelled synthetic eyes. Live mode renders only fres
 
 Open the [editable p5 template](https://sharkburger.github.io/donut-midi/library/editor.html). Edit JavaScript, click Run, load a painting or music template, and download sketch.js. Draft code stays in browser localStorage; pairing codes are not saved. The preview runs in a sandboxed iframe; parent-page code handles the existing connector and forwards only samples. The iframe receives no pairing token. Stop removes the preview and its audio. Live preview shares the same origin permission requirement as the examples; use this published page with your existing connector. Browser local-network permissions still apply.
 
-This is our built-in p5.js editor, not editor.p5js.org. The editor provides `neon` and `MAT_URL`; downloaded sketch.js includes declarations suitable for the starter folder's library directory. Load p5.js and p5.neon.js before it. Live standalone sketches additionally need connector-client.js and a pairing UI. The supplied templates protect the corner markers; keep them clear when editing a live sketch. The sandbox intentionally blocks external network assets: use the included mat or data URLs in this first editor version.
+This is our built-in p5.js editor, not editor.p5js.org. The editor provides `neon` and `MAT_URL`; downloaded sketch.js includes declarations suitable for the starter folder's library directory. Load p5.js and p5.neon.js before it. Live standalone sketches additionally need connector-client.js and a pairing UI; use createNeonControls() to create that transient UI. The supplied templates protect the corner markers; keep them clear when editing a live sketch. The sandbox intentionally blocks external network assets: use the included mat or data URLs in this first editor version.
 
 
 ## Physical donut layout
@@ -150,3 +153,22 @@ Drag the divider between code and preview to give the render more space. The ful
 Select **15 · Physical donut → scream**, then **Load template**. Use **Edit layout** to position the single target and **Download matching mat** to print its four-marker mat. The default mat is 50 × 33.3 cm with one 10 cm target in the centre. Print at actual size, place the donut within the target, and keep all four markers visible to Neon. Changing the physical position requires updating the layout and matching mat. The preview deliberately does not duplicate the printed tags.
 
 Connect your selected Neon, click **Enable scream** once, and look at the physical donut. After 3 seconds of continuous valid gaze inside its AOI, a synthesized cartoon scream starts; pitch and tremble intensify over the next 7 seconds with capped volume. Looking away, losing valid gaze, hiding the page or stopping the sketch resets and silences it. Sound comes from the computer or a connected speaker beside the donut. This measures AOI dwell, not a classified fixation or cognitive state. Mouse mode is available for testing. Edit `THRESHOLD_MS`, `RAMP_MS` and `DONUT_LAYOUT` to reuse it; project export includes the reusable `DwellRamp` and `ScreamVoice` helpers.
+
+
+## p5 addon API adapter
+
+`p5.neon-addon.js` scopes trackers to an individual sketch. In global mode call `createNeonTracker()` from `setup()`; in instance mode call `p.createNeonTracker()` from `p.setup()`. Use the existing `connect({code, port})`, `useMouse(canvas)`, `setRegions()`, and `on()` methods on the returned tracker. p5 cleanup automatically disposes all trackers created by that sketch. The downloadable example now uses this API.
+
+The p5 Web Editor can run mouse-based sketches. On this branch, the connector also adds an exact allowlist for official p5 editor and preview origins. The controls created by createNeonControls() keep the pairing code in a password field at run time; it is not part of the saved sketch. Browser Local Network Access permission may still be required. Only run sketches whose source you trust while a pairing code is active.
+
+## Shared creative modules
+
+The app and starter package now load the same framework-independent helpers from `library/modules/`:
+
+- `game-core.js` exposes `DonutGame` for MIDI / numbered-score parsing, authored phrases, target routes and slow-gaze game state.
+- `game-mix.js` exposes `DonutMix` for phrase accompaniment scheduling.
+- `soundscapes.js` exposes `StateSoundscapes` for continuous, cross-faded audio textures. The labels are artistic mappings, not inferred diagnoses.
+- `midi-core.js` exposes `MidiOutput` and `StableChoice` for optional MIDI output and stable selection.
+- `cognitive-evidence.js` exposes `CognitiveEvidence` for pupil reference and missing-data-safe evidence. It does not classify mental states.
+
+These modules are intentionally separate from `p5.neon.js`; a sketch can use only the pieces it needs. Physical geometry and the 15 marker-safe creative examples remain in `library/` as reusable visual and layout modules. The performance dashboard, database server and participant-study interface are still app-specific and are listed as remaining migration work in ROADMAP.md.

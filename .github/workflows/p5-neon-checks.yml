@@ -1,0 +1,29 @@
+name: p5.neon checks
+on:
+  push:
+    branches: [p5-neon-community-library]
+  pull_request:
+    branches: [p5-neon-community-library]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript and p5 adapters
+        run: node --test tests/*.test.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install connector test dependencies
+        run: pip install -r connector/requirements.txt
+      - name: Check connector, surface mapping and research storage
+        run: python -m unittest discover -s tests -p 'test_*.py'
+      - name: Build downloadable libraries
+        run: |
+          python scripts/build_p5_library.py --output /tmp/p5-neon-starter.zip
+          python scripts/build_connector.py --output /tmp/donut-midi-connector.zip

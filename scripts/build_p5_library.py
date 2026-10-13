@@ -3,8 +3,8 @@ from pathlib import Path
 import argparse
 import zipfile
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ['library/assets/donut-eye.png', 'library/templates/mirror.js', 'library/templates/scream.js', 'library/p5.neon-effects.js', 'library/template-catalog.js', 'library/project-zip.js', 'library/catalog-editor.js', 'library/templates/aoi.js', 'library/templates/asset.js', 'library/templates/blink.js', 'library/templates/dot.js', 'library/templates/dwell.js', 'library/templates/eyes.js', 'library/templates/particles.js', 'library/templates/pupil.js', 'library/templates/signals.js', 'library/templates/trail.js', 'markers.svg', 'library/layout-core.js', 'library/layout-editor.js', 'library/physical-template.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/editor-split.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js',
-         'library/style.css', 'library/README.md', 'library/LICENSE',
+FILES = ['library/assets/donut-eye.png', 'library/templates/mirror.js', 'library/templates/scream.js', 'library/p5.neon-effects.js', 'library/template-catalog.js', 'library/project-zip.js', 'library/catalog-editor.js', 'library/templates/aoi.js', 'library/templates/asset.js', 'library/templates/blink.js', 'library/templates/dot.js', 'library/templates/dwell.js', 'library/templates/eyes.js', 'library/templates/particles.js', 'library/templates/pupil.js', 'library/templates/signals.js', 'library/templates/trail.js', 'markers.svg', 'library/layout-core.js', 'library/layout-editor.js', 'library/physical-template.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/editor-split.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/p5.neon-addon.js', 'library/modules/game-core.js', 'library/modules/game-mix.js', 'library/modules/soundscapes.js', 'library/modules/midi-core.js', 'library/modules/cognitive-evidence.js', 'library/example.js',
+         'library/style.css', 'library/README.md', 'library/ROADMAP.md', 'library/LICENSE',
          'connector-client.js', 'monitor-mat.svg', 'vendor/p5.min.js', 'vendor/p5-LICENSE.txt']
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -17,5 +17,5 @@ if __name__ == '__main__':
         archive.writestr('p5-neon-starter/START-HERE.txt',
             'For mouse simulation: run python3 -m http.server 8080 in this folder, then open http://localhost:8080/library/index.html\n'
             'For live Neon, use https://sharkburger.github.io/donut-midi/library/ with your existing connector.\n'
-            'Arbitrary localhost origins and the p5 Web Editor are not enabled by the existing connector. See library/README.md.\n')
+            'The official p5 editor and preview origins are allowlisted for live input by the branch connector. Pair in the password field; do not store codes in sketch source.\n')
     print(f'Built {dest}')

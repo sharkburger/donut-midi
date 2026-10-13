@@ -19,9 +19,9 @@ PUBLIC_ORIGIN = 'https://sharkburger.github.io'
 PUBLIC_URL = PUBLIC_ORIGIN + '/donut-midi/'
 ROOT = Path(__file__).resolve().parents[1]
 # Explicit public assets; never serve source, session files or environment contents.
-ASSETS = {'library/assets/donut-eye.png', 'library/templates/mirror.js', 'library/p5.neon-effects.js', 'library/template-catalog.js', 'library/project-zip.js', 'library/catalog-editor.js', 'library/templates/aoi.js', 'library/templates/asset.js', 'library/templates/blink.js', 'library/templates/dot.js', 'library/templates/dwell.js', 'library/templates/eyes.js', 'library/templates/particles.js', 'library/templates/pupil.js', 'library/templates/signals.js', 'library/templates/trail.js', 'library/templates/scream.js', 'markers.svg', 'library/layout-core.js', 'library/layout-editor.js', 'library/physical-template.js', 'study-core.js', 'study.js', 'game-mix.js', 'game-core.js', 'game-mode.js', 'gaze-art.js', 'gaze-art-view.js', 'soundscapes.js', 'cognitive-evidence.js', 'cognitive-panel.js', 'eye-canvas.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/editor-split.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/example.js', 'library/style.css', 'library/README.md', 'library/LICENSE', 'dashboard.js', 'dashboard.css', 'index.html', 'style.css', 'core.js', 'app.js', 'patterns.js',
+ASSETS = {'library/assets/donut-eye.png', 'library/templates/mirror.js', 'library/p5.neon-effects.js', 'library/template-catalog.js', 'library/project-zip.js', 'library/catalog-editor.js', 'library/templates/aoi.js', 'library/templates/asset.js', 'library/templates/blink.js', 'library/templates/dot.js', 'library/templates/dwell.js', 'library/templates/eyes.js', 'library/templates/particles.js', 'library/templates/pupil.js', 'library/templates/signals.js', 'library/templates/trail.js', 'library/templates/scream.js', 'markers.svg', 'library/layout-core.js', 'library/layout-editor.js', 'library/physical-template.js', 'study-core.js', 'study.js', 'game-mode.js', 'gaze-art.js', 'gaze-art-view.js', 'cognitive-panel.js', 'eye-canvas.js', 'library/preview-runtime.js', 'library/console.js', 'library/editor.html', 'library/editor.css', 'library/editor.js', 'library/editor-split.js', 'library/template.js', 'library/index.html', 'library/p5.neon.js', 'library/p5.neon-addon.js', 'library/modules/game-core.js', 'library/modules/game-mix.js', 'library/modules/soundscapes.js', 'library/modules/midi-core.js', 'library/modules/cognitive-evidence.js', 'library/example.js', 'library/style.css', 'library/README.md', 'library/ROADMAP.md', 'library/LICENSE', 'dashboard.js', 'dashboard.css', 'index.html', 'style.css', 'core.js', 'app.js', 'patterns.js',
           'curve.js', 'states.js', 'studio.js', 'pattern-view.js', 'sample-controls.js',
-          'midi-core.js', 'music.js', 'research-session.js', 'public.js', 'connector.js',
+          'music.js', 'research-session.js', 'public.js', 'connector.js',
           'connector-client.js', 'mat.svg', 'monitor-mat.svg', 'monitor.html',
           'vendor/p5.min.js', 'vendor/p5-LICENSE.txt', 'connector-guide.html'}
 
@@ -67,7 +67,7 @@ class ConnectorServer(ThreadingHTTPServer):
 
     def allowed_origins(self):
         port = self.server_port
-        return {PUBLIC_ORIGIN, f'http://127.0.0.1:{port}', f'http://localhost:{port}'}
+        return {PUBLIC_ORIGIN, 'https://editor.p5js.org', 'https://preview.p5js.org', 'https://preview.p5js.com', f'http://127.0.0.1:{port}', f'http://localhost:{port}'}
 
 
 class Handler(BaseHTTPRequestHandler):

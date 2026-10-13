@@ -36,3 +36,8 @@ This is a source/launcher package, not a signed native app and not a bundled Pyt
 
 ## Local study storage (1.3)
 Participant tests require explicit consent and Start in the webpage. Samples and self-reports then persist in SQLite, outside the app release folder. On macOS: `~/Library/Application Support/Donut MIDI/data/study.sqlite3`. Use Research to export all or individual CSV packages. No video or cloud upload. Updating the app preserves this data. Close the previous connector and reopen the updated app to enable the new endpoints.
+
+
+## p5 Web Editor (p5.neon branch)
+
+The connector CORS allowlist includes the Donut MIDI site, its local fallback, and the exact official p5 editor / preview origins. In the Web Editor, load connector-client.js, p5.neon.js, and p5.neon-addon.js after p5.js. Use createNeonTracker() and createNeonControls(neon); pairing code is entered at run time in a password field and is not part of saved sketch code. Browser Local Network Access permission may still be required. Only run sketches whose source you trust while a pairing code is active.
