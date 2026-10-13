@@ -35,6 +35,21 @@ test('mouse holds are refreshed and listeners are released',()=>{
 test('AOI validation preserves the previous set on invalid replacement',()=>{
  const n=new Neon();n.setRegions([region]);assert.throws(()=>n.setRegions([{...region,width:2}]));assert.equal(n.regions[0].id,'a');assert.throws(()=>n.setRegions([region,region]));
 });
+test('friendly AOI syntax adds and replaces regions without deleting other AOIs',()=>{
+ const n=new Neon();n.aoi('a',{x:.2,y:.2,width:.2,height:.2},{dwell:900,color:'pink'});n.aoi('b',{x:.6,y:.2,w:.2,h:.2});
+ assert.equal(n.regions.length,2);assert.equal(n.regions[0].dwellMs,900);assert.equal(n.regions[0].color,'pink');
+ n.aoi('a',{x:.1,y:.1,width:.1,height:.1},{dwellMs:1200});assert.equal(n.regions.length,2);assert.equal(n.regions.find(r=>r.id==='a').dwellMs,1200);
+ assert.throws(()=>n.aoi('bad',{x:0,y:0,width:2,height:1}));
+});
+test('onAOI filters event callbacks by region and returns one unsubscribe',()=>{
+ const n=new Neon();let entered=0,dwelled=0,exited=0;n.aoi('a',{x:0,y:0,width:.5,height:1},{dwell:10});n.aoi('b',{x:.5,y:0,width:.5,height:1});
+ const off=n.onAOI('a',{enter:()=>entered++,dwell:()=>dwelled++,exit:()=>exited++});n.emit('enter',{region:{id:'b'}});n.emit('enter',{region:{id:'a'}});n.emit('dwell',{region:{id:'a'}});n.emit('exit',{region:{id:'a'}});
+ assert.deepEqual([entered,dwelled,exited],[1,1,1]);off();n.emit('enter',{region:{id:'a'}});assert.equal(entered,1);
+});
+test('drawGaze draws normalized gaze and safely ignores missing gaze',()=>{
+ const n=new Neon();const calls=[];const p={width:100,height:50,push:()=>calls.push('push'),pop:()=>calls.push('pop'),noFill:()=>{},stroke:()=>{},strokeWeight:()=>{},circle:(x,y,r)=>calls.push([x,y,r])};
+ assert.equal(n.drawGaze(p,{x:.25,y:.5}),true);assert.deepEqual(calls[1],[25,25,18]);assert.equal(n.drawGaze(p,null),false);
+});
 test('an invalid sample or a long gap between frames restarts dwell',()=>{
  let time=0,hits=0;const n=new Neon({clock:()=>time});n.setRegions([region]);n.on('dwell',()=>hits++);
  n.accept(sample);n.update();time=600;n.accept(sample);n.update();assert.equal(hits,0);

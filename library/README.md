@@ -1,15 +1,18 @@
-# p5.neon 0.2.0
+# p5.neon 0.3.0 (community draft)
 
 A small MIT-licensed JavaScript library for eye-driven p5.js sketches. This is an independent community project, not an official Pupil Labs or p5.js product.
 
 [Run the examples](https://sharkburger.github.io/donut-midi/library/) · [Full Donut MIDI](https://sharkburger.github.io/donut-midi/?v=console-2)
 
-## What works in v0.2
+## What works in v0.3 draft
 
 - Pair with the existing Donut MIDI Neon connector (no protocol change).
 - Read normalized surface gaze and optional pupil diameter.
 - Define rectangular AOIs and receive enter, exit and dwell events.
 - Simulate gaze with the mouse, including stationary dwell.
+- Reuse the blank four-marker mat with `NeonMat`; the default p5 Web Editor starter has no donuts or AOIs.
+- Define AOIs with `neon.aoi()` and subscribe by ID with `neon.onAOI()`.
+- Draw an optional normalized gaze cursor with `neon.drawGaze()`.
 - Run Gaze painting and Dwell instrument examples with p5.js 1.11.11.
 - Create an instance-scoped tracker through the p5 sketch API.
 
@@ -25,6 +28,7 @@ Create a sketch at [editor.p5js.org](https://editor.p5js.org/). In its `index.ht
 <script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/connector-client.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/library/p5.neon.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/library/p5.neon-addon.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/library/p5.neon-surface.js"></script>
 ```
 
 Then put this in `sketch.js`. It starts in mouse mode so you can try the interaction without hardware:
@@ -88,6 +92,9 @@ The browser samples the connector about every 33 ms; this is not full-rate raw s
 | `connect({code, port})` | Stop previous input, then use the authenticated local connector. |
 | `useMouse(p5RendererOrCanvas)` | Stop live input and track the pointer on that canvas. Pupil data stays null. |
 | `setRegions([{id,x,y,width,height,dwellMs,...}])` | Rectangles in 0–1 surface coordinates; default dwell 500 ms. First region wins overlaps. Custom metadata is retained. |
+| `aoi(id, {x,y,width,height}, {dwell,...metadata})` | Add or replace one AOI using shorter, sketch-friendly syntax. `w`/`h` and `dwellMs` are also accepted. Returns the tracker. |
+| `onAOI(id, {enter,dwell,exit})` | Subscribe to lifecycle events for one AOI; returns an unsubscribe function. |
+| `drawGaze(p, gaze, {color,radius,weight})` | Draw an optional circle at normalized gaze coordinates; returns false for missing gaze. |
 | `update()` | Call once per draw frame; update AOI events and return valid gaze or null. |
 | `gaze` | Valid `{x,y}` or null; read-only getter. |
 | `pupil` | Mean of available positive eye diameters in mm, or null. Requires valid surface gaze in v0.1. |
@@ -99,6 +106,23 @@ The browser samples the connector about every 33 ms; this is not full-rate raw s
 | `dispose()` | Disconnect and remove all subscriptions. |
 
 Events: `sample` receives the latest sample; `status` and `error` receive a message; `enter` and `dwell` receive `{region,gaze}`; `exit` receives `{region}`. A held gaze triggers dwell once. Leaving a region, invalid input or switching sources resets the dwell. Returning starts a new dwell. The examples use native Web Audio, so p5.sound is not required; users must enable audio themselves.
+
+## Blank marker mat and sketch-friendly syntax (0.3 draft)
+
+The [p5 Web Editor starter](p5-web-editor/README.md) now starts with a reusable blank mat rather than the eight-donut MIDI layout. The mat SVG is [`assets/blank-marker-mat.svg`](assets/blank-marker-mat.svg): it has the same four AprilTag patterns as the established mat, at 420 × 280 mm, and contains no target objects. The physical eight-donut setup remains available in the optional physical template.
+
+Load `p5.neon-surface.js` after the tracker scripts. It adds `NeonMat(p5, {imageUrl, aspect})`; call `mat.load()` in `preload()` and `mat.draw()` in `draw()`. Define only the AOIs your own physical objects need:
+
+```js
+neon.aoi('donut-1', { x: .25, y: .35, width: .18, height: .20 }, { dwell: 900 });
+neon.onAOI('donut-1', {
+  enter: () => console.log('look began'),
+  dwell: () => playSound(),
+  exit: () => console.log('look ended')
+});
+```
+
+This is a small JavaScript API layered on p5, not a new syntax or separate language. `aoi()` is a concise wrapper around the existing `setRegions()` method, and `onAOI()` filters the existing `enter`, `dwell`, and `exit` events by region ID. Coordinates refer to the whole calibrated mat. Moving a physical object requires updating its AOI placement; AprilTags locate the surface but do not recognize objects.
 
 ## Distribution
 

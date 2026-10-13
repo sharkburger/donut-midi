@@ -39,6 +39,26 @@
         return {...r,dwellMs};
       });this.resetDwell();this.regions=validated;return this;
     }
+    aoi(id,bounds,options={}){
+      if(!bounds||typeof bounds!=='object')throw Error('AOI bounds must be an object.');
+      const width=bounds.width??bounds.w,height=bounds.height??bounds.h;
+      const dwellMs=options.dwellMs??options.dwell??500;
+      const metadata={...options};delete metadata.dwell;delete metadata.dwellMs;
+      const region={...metadata,id,x:bounds.x,y:bounds.y,width,height,dwellMs};
+      return this.setRegions([...this.regions.filter(r=>r.id!==id),region]);
+    }
+    onAOI(id,handlers={}){
+      const subscriptions=[];
+      for(const event of ['enter','dwell','exit']){
+        const handler=handlers[event];if(typeof handler!=='function')continue;
+        subscriptions.push(this.on(event,payload=>{if(payload.region?.id===id)handler(payload);}));
+      }
+      return ()=>subscriptions.forEach(off=>off());
+    }
+    drawGaze(p,gaze=this.gaze,{color='#008d95',radius=18,weight=3}={}){
+      if(!gaze||!p||typeof p.push!=='function')return false;
+      p.push();p.noFill();p.stroke(color);p.strokeWeight(weight);p.circle(gaze.x*p.width,gaze.y*p.height,radius);p.pop();return true;
+    }
     resetDwell(){const previous=this.active;this.active=null;this.fired=false;this.entered=0;if(previous)this.emit('exit',{region:previous});}
     update(){
       if(this.mode==='mouse'&&this.simInside&&this.sample)this.received=this.clock();
@@ -50,6 +70,6 @@
     }
     dispose(){this.disconnect();this.listeners.clear();}
   }
-  Neon.VERSION='0.2.0';
+  Neon.VERSION='0.3.0';
   if(typeof module!=='undefined'&&module.exports)module.exports={Neon};else root.NeonP5=Neon;
 })(globalThis);
