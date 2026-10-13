@@ -17,48 +17,64 @@ The app behavior remains unchanged; its pure phrase-game, accompaniment, soundsc
 
 ## Quick start
 
-Copy `connector-client.js`, `p5.neon.js`, and `p5.neon-addon.js` into your sketch. Load them after p5.js and before your sketch:
+### Use it in the p5.js Web Editor
+
+Create a sketch at [editor.p5js.org](https://editor.p5js.org/). In its `index.html`, add these scripts after the existing p5.js script and before `sketch.js`:
 
 ```html
-<script src="p5.min.js"></script>
-<script src="connector-client.js"></script>
-<script src="p5.neon.js"></script>
-<script src="p5.neon-addon.js"></script>
-<script src="sketch.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/connector-client.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/library/p5.neon.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-community-library/library/p5.neon-addon.js"></script>
 ```
 
-A complete mouse example in p5 global mode:
+Then put this in `sketch.js`. It starts in mouse mode so you can try the interaction without hardware:
 
 ```js
 let neon;
+let gaze = null;
+let message = 'Move the mouse over the canvas';
+const targets = [
+  { id: 'left', x: .15, y: .25, width: .3, height: .5, dwellMs: 600 },
+  { id: 'right', x: .55, y: .25, width: .3, height: .5, dwellMs: 600 }
+];
+
 function setup() {
-  const canvas = createCanvas(900, 600);
+  const renderer = createCanvas(900, 600);
   neon = createNeonTracker();
-  neon.useMouse(canvas);
-  neon.setRegions([
-    { id: 'center', x: .4, y: .4, width: .2, height: .2, dwellMs: 500 }
-  ]);
-  neon.on('dwell', ({ region }) => console.log(region.id));
+  neon.useMouse(renderer);
+  neon.setRegions(targets);
+  neon.on('dwell', ({ region }) => message = `Dwell: ${region.id}`);
+  neon.on('status', text => message = text);
+  neon.on('error', text => message = text);
+  createNeonControls(neon); // Pairing is entered at run time, not saved in sketch.js.
 }
+
 function draw() {
   background(245);
-  const gaze = neon.update();
-  noFill(); rect(width * .4, height * .4, width * .2, height * .2);
+  gaze = neon.update(); // Fresh normalized position, or null when input is invalid.
+  noFill(); stroke(160); strokeWeight(2);
+  for (const target of targets) {
+    rect(target.x * width, target.y * height,
+         target.width * width, target.height * height, 16);
+    noStroke(); fill(40); textAlign(CENTER, CENTER);
+    text(target.id, (target.x + target.width / 2) * width,
+         (target.y + target.height / 2) * height);
+    noFill(); stroke(160);
+  }
+  noStroke(); fill(35); textAlign(LEFT, TOP); text(message, 16, 16);
+  if (!gaze) return;
+  fill('#008d95'); noStroke();
   if (gaze) circle(gaze.x * width, gaze.y * height, 20);
 }
 ```
 
-To switch to live input from a user-clicked button:
+Click **Connect Neon** in the controls and enter the pairing code and port shown by the running connector. The **Use mouse** button switches back to simulation. The current release uses the local connector as its transport; it does not put credentials in the sketch or send them to GitHub. See [`p5-web-editor/README.md`](p5-web-editor/README.md) for the copyable starter and live-connection checklist.
 
-```js
-await neon.connect({ code: pairingCode, port: connectorPort });
-```
-
-Use the port printed by the connector (the Mac app may select a dynamic port). Code and port are not stored by this library. Never commit a pairing code to your sketch or put it in a public URL query. `connect()` initiates transport; listen for `status` / `error` for the actual outcome.
+For a hand-coded setup, call `await neon.connect({ code, port })` from a user-clicked button. Never commit a pairing code to a public sketch or URL.
 
 ## Live data and coordinate space
 
-Start your existing connector, keep Companion and the computer on the same Wi-Fi, and copy its current pairing code and port into the examples. Allow local-network access if your browser requests it. The current bridge permits `https://sharkburger.github.io` and its own local fallback origin; arbitrary localhost servers, other sites and the p5 Web Editor are NOT supported by this release. Their origin/permission integration requires a separate bridge change. Downloading this library does not bypass that restriction.
+Start a connector build from this branch, keep Companion and the computer on the same Wi-Fi, and enter its current pairing code and port in the controls. Allow local-network access if your browser requests it. This branch's connector has an exact origin allowlist for the official p5 editor and preview. An older installed connector may not have that allowlist; updating the p5 JavaScript files alone does not update the desktop connector. Never broaden CORS to arbitrary websites.
 
 Coordinates are on the existing four-AprilTag surface: top-left `(0,0)`, bottom-right `(1,1)`. They are NOT arbitrary screen or world-camera coordinates. For these live examples, display the supplied `monitor-mat.svg` at aspect ratio 1.5 and keep all four tags visible. Custom physical surfaces require matching bridge surface geometry. The drawing example leaves the tags unobscured. Mouse mode does not need a bridge.
 

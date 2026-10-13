@@ -28,3 +28,26 @@ test('p5 2 registers a native addon method and sketch-removal lifecycle',()=>{
   lifecycles.remove.call(sketch);
   assert.equal(tracker.disposed,1);
 });
+
+test('p5 controls mount without depending on an undeclared global canvas',()=>{
+  class P5 {}
+  P5.prototype.registerMethod=()=>{};
+  class NeonP5 {
+    dispose(){}
+    useMouse(){}
+    connect(){}
+    on(){return ()=>{};}
+  }
+  const body={children:[],appendChild(element){this.children.push(element);}};
+  const document={body,querySelector(){return null;},createElement(){return {
+    style:{},children:[],append(...children){this.children.push(...children);},appendChild(child){this.children.push(child);},
+    setAttribute(){},addEventListener(){},remove(){}
+  };}};
+  const window={p5:P5,NeonP5,document};
+  vm.runInNewContext(source,{window,Set,Error,AbortController});
+  const sketch=new P5();
+  const tracker=sketch.createNeonTracker();
+  const controls=sketch.createNeonControls(tracker);
+  assert.equal(body.children[0],controls.element);
+  assert.equal(controls.element.className,'p5-neon-controls');
+});

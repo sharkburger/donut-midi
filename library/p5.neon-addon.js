@@ -22,9 +22,9 @@
       const doc = root.document;
       if (!doc?.createElement) throw new Error('Neon controls need a browser document.');
       const parentOption = options.parent;
-      const parent = typeof parentOption === 'string' ? doc.querySelector(parentOption) : parentOption;
       const sketch = this;
-      const host = parent || canvas?.parentElement || doc.body;
+      const parent = typeof parentOption === 'string' ? doc.querySelector(parentOption) : parentOption;
+      const host = parent || sketch._renderer?.canvas?.parentElement || doc.body;
       if (!host?.appendChild) throw new Error('Provide a valid controls parent element.');
 
       const panel = doc.createElement('section');
