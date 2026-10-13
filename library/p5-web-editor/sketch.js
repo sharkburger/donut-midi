@@ -6,13 +6,10 @@ let neon;
 let mat;
 let statusText = 'Mouse simulation · no biometric data';
 
-function preload() {
-  mat = new NeonMat(this, { imageUrl: MAT_URL, aspect: 1.5 });
-  mat.load();
-}
-
-function setup() {
+async function setup() {
   const canvas = createCanvas(900, 600);
+  mat = new NeonMat(this, { imageUrl: MAT_URL, aspect: 1.5 });
+  await mat.load();
   neon = createNeonTracker();
   neon.useMouse(canvas);
   neon.on('status', text => statusText = text);

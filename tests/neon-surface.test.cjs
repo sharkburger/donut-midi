@@ -2,9 +2,9 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {NeonMat}=require('../library/p5.neon-surface.js');
 
-test('NeonMat loads its single reusable marker image and fits the mat aspect',()=>{
- const calls=[];const p={width:900,height:600,loadImage:url=>({url}),push(){},pop(){},noStroke(){},fill(){},rect(...v){calls.push(['rect',...v]);},image(...v){calls.push(['image',...v]);}};
- const mat=new NeonMat(p,{imageUrl:'/marker-mat.svg',aspect:1.5});assert.equal(mat.load().url,'/marker-mat.svg');
+test('NeonMat asynchronously loads its reusable image and fits the mat aspect',async()=>{
+ const calls=[];const p={width:900,height:600,loadImage:(url,success)=>{const image={url};success(image);return image;},push(){},pop(){},noStroke(){},fill(){},rect(...v){calls.push(['rect',...v]);},image(...v){calls.push(['image',...v]);}};
+ const mat=new NeonMat(p,{imageUrl:'/marker-mat.svg',aspect:1.5});assert.equal((await mat.load()).url,'/marker-mat.svg');
  assert.deepEqual(mat.draw(),{x:0,y:0,width:900,height:600});assert.deepEqual(calls[1].slice(1),[{url:'/marker-mat.svg'},0,0,900,600]);
  assert.deepEqual(mat.draw(0,0,600,600),{x:0,y:100,width:600,height:400});
  assert.throws(()=>mat.draw(0,0,0,600));

@@ -10,7 +10,15 @@
     load(){
       if(!this.imageUrl)throw Error('Provide the reusable marker mat image URL.');
       if(typeof this.p.loadImage!=='function')throw Error('The p5 instance must provide loadImage().');
-      this.image=this.p.loadImage(this.imageUrl);return this.image;
+      return new Promise((resolve,reject)=>{
+        let settled=false;
+        const loaded=image=>{if(settled)return;settled=true;this.image=image;resolve(image);};
+        const failed=error=>{if(settled)return;settled=true;reject(error||Error('Could not load the marker mat image.'));};
+        try{
+          const result=this.p.loadImage(this.imageUrl,loaded,failed);
+          if(result&&typeof result.then==='function')result.then(loaded,failed);
+        }catch(error){failed(error);}
+      });
     }
     draw(x=0,y=0,w=this.p.width,h=this.p.height){
       if(![x,y,w,h].every(Number.isFinite)||w<=0||h<=0)throw Error('Mat bounds must have finite coordinates and positive size.');

@@ -1,6 +1,6 @@
 # p5.neon: blank marker mat and gaze API
 
-This starter is a normal p5.js sketch. It opens with a reusable, blank four-marker mat and a gaze cursor. It does **not** add donuts or create AOIs until you define them. The eight-donut MIDI layout remains an optional example.
+This starter is a normal p5.js sketch for the current p5.js 2.x Web Editor. It opens with a reusable, blank four-marker mat and a gaze cursor. It does **not** add donuts or create AOIs until you define them. The eight-donut MIDI layout remains an optional example.
 
 ## Start in the p5.js Web Editor
 
@@ -26,13 +26,10 @@ const MAT_URL = 'https://cdn.jsdelivr.net/gh/sharkburger/donut-midi@p5-neon-comm
 let neon;
 let mat;
 
-function preload() {
-  mat = new NeonMat(this, { imageUrl: MAT_URL, aspect: 1.5 });
-  mat.load();
-}
-
-function setup() {
+async function setup() {
   const canvas = createCanvas(900, 600);
+  mat = new NeonMat(this, { imageUrl: MAT_URL, aspect: 1.5 });
+  await mat.load(); // p5.js 2 loads assets asynchronously in setup().
   neon = createNeonTracker();
   neon.useMouse(canvas); // Use the mouse to rehearse; connect Neon in the controls for live gaze.
   createNeonControls(neon);
@@ -61,9 +58,14 @@ function draw() {
 ### Reusable marker mat
 
 ```js
-const mat = new NeonMat(p5Instance, { imageUrl: MAT_URL, aspect: 1.5 });
-mat.load();                 // Call from p5 preload().
-const bounds = mat.draw(); // Draw fitted within the canvas; returns its pixel bounds.
+let mat;
+async function setup() {
+  mat = new NeonMat(this, { imageUrl: MAT_URL, aspect: 1.5 });
+  await mat.load(); // p5.js 2 waits here until the mat image is ready.
+}
+function draw() {
+  const bounds = mat.draw(); // Fits within the canvas; returns pixel bounds.
+}
 ```
 
 `library/assets/blank-marker-mat.svg` is a 420 × 280 mm, white, blank surface with the same four AprilTag patterns as this project's existing marker mat. It contains no donuts. Print at 100% scale if using that physical size; scaling the full SVG uniformly is fine. Keep the tags unobstructed and preserve their relative positions. This is a four-marker surface image, not a QR-code generator.

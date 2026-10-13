@@ -111,7 +111,7 @@ Events: `sample` receives the latest sample; `status` and `error` receive a mess
 
 The [p5 Web Editor starter](p5-web-editor/README.md) now starts with a reusable blank mat rather than the eight-donut MIDI layout. The mat SVG is [`assets/blank-marker-mat.svg`](assets/blank-marker-mat.svg): it has the same four AprilTag patterns as the established mat, at 420 × 280 mm, and contains no target objects. The physical eight-donut setup remains available in the optional physical template.
 
-Load `p5.neon-surface.js` after the tracker scripts. It adds `NeonMat(p5, {imageUrl, aspect})`; call `mat.load()` in `preload()` and `mat.draw()` in `draw()`. Define only the AOIs your own physical objects need:
+Load `p5.neon-surface.js` after the tracker scripts. It adds `NeonMat(p5, {imageUrl, aspect})`; in p5.js 2, `await mat.load()` inside `async setup()`, then call `mat.draw()` in `draw()`. Define only the AOIs your own physical objects need:
 
 ```js
 neon.aoi('donut-1', { x: .25, y: .35, width: .18, height: .20 }, { dwell: 900 });
