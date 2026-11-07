@@ -1,0 +1,13 @@
+/* iPhone adaptation of the existing Eight Keys dashboard. */
+html,body{height:auto!important;overflow:auto!important}body{display:block!important;min-height:100dvh}
+.dashboard-header{height:auto;min-height:52px;flex-wrap:wrap;gap:8px;padding:10px 14px!important}
+.dashboard-header .header-right{flex-wrap:wrap!important}.dashboard-header .brand small{font-size:9px}
+.dashboard,.controller-mode .dashboard{display:flex!important;flex-direction:column;height:auto!important;overflow:visible!important;padding:12px!important;gap:14px}
+.visuals,.controller-mode .visuals{display:block!important;min-height:0}.overview,.controller-mode .overview{display:none!important}
+.score-card{min-height:230px;padding:12px}.score-heading{margin-bottom:10px}.score-heading>span{display:block!important;font-size:10px!important}
+#scoreViewport{height:auto!important;min-height:200px;aspect-ratio:1.5}.score-heading h2{font-size:15px!important}
+.control-rail,.controller-mode .control-rail{width:100%;align-self:stretch!important;overflow:visible!important}
+.rail-tabs,.controller-mode .rail-tabs{display:grid!important}.rail-scroll,.controller-mode .rail-scroll{display:block!important;overflow:visible!important;max-height:none!important}
+.dashboard-caption{margin:10px;font-size:10px!important}.rail-top{padding:12px!important}
+#toast{position:fixed;bottom:20px;max-width:90vw;z-index:2000}
+#fullController{display:none!important}

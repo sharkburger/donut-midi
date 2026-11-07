@@ -9,3 +9,9 @@ NEON-CONNECTION-CHECK.json
 .connector-venv/
 dist/
 _site/
+ios/web/
+ios/DonutMIDI.xcodeproj/
+ios/DonutMIDI/Assets.xcassets/
+build/
+.DerivedData/
+xcuserdata/
