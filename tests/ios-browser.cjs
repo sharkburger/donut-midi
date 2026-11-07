@@ -4,11 +4,11 @@ const fs=require('node:fs');
 (async()=>{
  const browser=await chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
- const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('PAGE ERROR',e.stack);});
  await page.addInitScript(()=>{window.webkit={messageHandlers:{exportRecording:{postMessage:text=>window.testExport=text}}};});
  await page.goto('http://127.0.0.1:18089/');
  await page.locator('#scoreMode').getByText('Touch · hold to play').waitFor();
- assert.equal(await page.locator('#source option[value=live]').count(),0);
+ assert.deepEqual(errors,[]);assert.equal(await page.locator('#source option[value=live]').count(),0);
  assert.equal(await page.locator('#openWorkshop').isVisible(),false);
  await page.locator('#audioButton').click();
  const canvas=page.locator('#canvasHost canvas');await canvas.scrollIntoViewIfNeeded();
