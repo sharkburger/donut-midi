@@ -4,15 +4,3 @@ __pycache__/
 .DS_Store
 *.zip
 *.log
-work/
-outputs/
-dist/
-build/
-dist/
-*.spec
-.DerivedData/
-*.xcuserstate
-xcuserdata/
-ios/web/
-ios/DonutSong.xcodeproj/
-ios/DonutSong/Assets.xcassets/

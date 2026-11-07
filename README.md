@@ -1,28 +1,10 @@
-# Donut Song / 甜甜圈之歌
+# Donut Song / 甜甜圈之歌 · 第一版
 
 一个使用 p5.js 绘制、Web Audio 合成声音的可食用眼动乐器。注视选音，瞳孔变化改变音色，品尝与吃完改变作品的进程。界面中文，依赖已随包保存，模拟和回放可离线运行。
 
-## 下载桌面测试版与 iOS 测试进度
-
-首个桌面软件版本为 **0.2.0-beta.1**：[GitHub Releases](https://github.com/sharkburger/donut-midi/releases)。Mac Apple Silicon / macOS 14+ 下载解压后双击启动，Python 和 Neon 连接依赖随包提供，演奏台在默认浏览器打开。详见 [桌面安装说明](desktop/README.md)。此包尚未经过 Apple 公证；真实 Neon 硬件仍需联调。
-
-iOS 第一版范围为 **触摸演奏与 JSON 回放**，含原生导入、导出及切后台停音；不含 Neon 直连。工程和 TestFlight 准备步骤在 [ios/README.md](ios/README.md)。尚无 Apple 开发者账号，尚未上传 TestFlight，也没有可用邀请链接。本项目没有提交正式 App Store 上架。
-
-## 网站与命名
-
-统一名称为 **Donut Song／甜甜圈之歌**。Donut Eye 是早期称呼；`donut-midi` 保留为仓库名与 GitHub Pages 路径。当前使用 Web Audio 合成声音，没有 MIDI 输出。
-
-- `index.html`：Home，项目介绍、原创圆环乐谱、无声交互示意与资源入口。
-- `play.html`：Play，保留现有真实演奏工作台。
-- `get-started.html`：无设备、合成示例与 Neon 三条入门路径。
-- `build.html`：定位、制作、映射、工作坊、数据与验证边界。
-- `open-source.html`：本地运行、代码导览、GitHub 贡献和许可状态。
-
-信息组织学习 FlowIO 的项目／工具／文档／制作／贡献分层（https://www.softrobotics.io/），布局、文字和视觉为原创。未复制其品牌或素材。
-
 ## 先体验（不需要 Neon）
 
-1. 双击 `play.html`，用 Chrome / Edge / Safari 打开。也可在 Mac 双击 `启动甜甜圈之歌.command`，或在此文件夹运行 `python3 serve.py`。本机首页为 http://127.0.0.1:8088 ，演奏台为 http://127.0.0.1:8088/play.html 。实时连接建议使用这个本机网址，不使用 file:// 页面。
+1. 双击 `index.html`，用 Chrome / Edge / Safari 打开。也可在 Mac 双击 `启动甜甜圈之歌.command`，或在此文件夹运行 `python3 serve.py`。本机网址为 http://127.0.0.1:8088 。实时连接建议使用这个本机网址，不使用 file:// 页面。
 2. 点击「开启声音与演奏」，浏览器需要这一次点击才能播放声音。
 3. 在三个甜甜圈区域停留约半秒，分别演奏 C4 / E4 / G4。持续停留只发一次，离开再看可再次发声。
 4. 移动右侧「模拟瞳孔」滑块，改变随后音符或延音的音色。滑块是合成输入，不是测量值。
@@ -124,31 +106,3 @@ p5.js 1.11.11 随包分发，许可见 `vendor/p5-LICENSE.txt`。
 - [OpenCV ArUco / AprilTag 检测](https://docs.opencv.org/4.x/d5/dae/tutorial_aruco_detection.html)
 
 本项目的绘图、状态机与桥接由本次任务编写；AprilTag 编码由 OpenCV 生成。
-
-
-## 网站维护与 GitHub Pages 部署
-
-前端仍是原生 HTML、CSS、JavaScript、p5.js 与 Web Audio，无 npm 或构建依赖，p5.js 使用 `vendor/p5.min.js` 本地版本。官网样式和无声示意在 `site.css` / `site.js`；工作台样式与路径引导在 `style.css` / `play-entry.js`。修改核心逻辑前请运行已有测试，保持 `donut-song/1` 兼容。
-
-在项目目录执行 `python3 serve.py`，浏览器访问 http://127.0.0.1:8088/ 。双击 HTML 可查看静态页面，但实时设备路径只支持本机 HTTP。Mac 启动脚本仍打开项目首页。所有页面与资源用相对链接，支持 `/donut-midi/` 子路径与独立 HTML 刷新，无需 SPA 回退。
-
-旧的 `index.html` 地址现在打开官网；演奏功能在 `play.html`。`index.html?source=simulate|replay|live` 和 `index.html#play` 会转到工作台。原本没有查询参数的书签改为官网入口，首页提供直接体验按钮。
-
-部署有两种方式：
-
-1. 将项目源文件提交至仓库，GitHub Settings → Pages → Deploy from a branch，选择实际部署分支的根目录 `/`。`.nojekyll` 避免 Jekyll 处理。
-2. 执行 `python3 scripts/package_site.py`，生成 `outputs/github-pages/` 和 `outputs/donut-song-pages.zip`；将该静态目录交给 Pages 静态上传流程，入口必须在产物根层的 `index.html`。`outputs/donut-song-source.zip` 包含可本地启动和运行测试的完整源文件。
-
-打包使用明确文件列表，不包含虚拟环境、缓存、临时记录或 Git 元数据。生成后本地预览部署产物：`python3 -m http.server 8089 --bind 127.0.0.1 --directory outputs/github-pages`。网页源文件随桌面测试版一同发布；GitHub Pages 的线上状态需以部署结果为准。
-
-### HTTPS 与本地设备
-
-桥接显式只允许本机 `http://127.0.0.1` / `http://localhost` Origin。实际 WebSocket 测试会拒绝 `https://sharkburger.github.io` 和 `null`（file 页面）来源。因此官网公开 HTTPS 页面不支持直连；工作台在这些来源禁用连接按钮并给出本地步骤。不放宽来源，也不要求用户关闭浏览器安全功能。
-
-浏览器还可能限制混合内容／本地网络权限。尚未完成各浏览器从公开 HTTPS 页访问回环 WebSocket 的权限矩阵验证；本地 HTTP 网页 + 本机桥接是本版验证的传输路径。传输检查使用无设备夹具，不代表真实 Neon 已联调。
-
-### 项目与第三方许可
-
-仓库没有项目整体 LICENSE，许可尚待作者确定，本次未自行选取。源代码公开不等于所有用途已有授权。p5.js 的 LGPL-2.1 仅适用于该依赖。依赖清单、上游与许可见 [THIRD_PARTY.md](THIRD_PARTY.md)；贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-全新依赖安装检查发现上游 `pupil-labs-video` 导入需要 `packaging`，已显式补入 requirements。macOS 上 OpenCV 与 PyAV 同时载入可能输出重复 AVF 类警告，本轮测试通过，真实码流与跨平台兼容仍需验证。

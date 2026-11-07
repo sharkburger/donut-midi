@@ -1,7 +1,7 @@
 'use strict';
 const {clamp,ZONES,zoneAt,pupil,Dwell,parseRecording}=DonutCore;
 const $=id=>document.getElementById(id);
-const VERSION='0.2.0-beta.1';
+const VERSION='0.1.0';
 const phaseNames={prepare:'01 / 准备',look:'02 / 观看',taste:'03 / 品尝',after:'04 / 余味',end:'05 / 结束'};
 const phaseHints={prepare:'取得个人参考值，然后开始观看。',look:'在一个甜甜圈区域停留，演奏一个音。',taste:'暂停选音，延续最后一音；放回食物后切换到余味。',after:'再次演奏，听听同一旋律的变化。',end:'本轮已结束。重新摆盘，开始下一首。'};
 let source='simulate',phase='prepare',consumed=[false,false,false],baseline=4,baselineReady=true;
@@ -81,7 +81,7 @@ function connect(){
   disconnect();const url=$('wsUrl').value.trim();
   if(!/^ws:\/\/(127\.0\.0\.1|localhost):\d+\/?$/.test(url)){toast('第一版仅接受本机 ws://127.0.0.1:端口 桥接。');return;}
   connectionState='连接中';$('connectionInfo').textContent='正在连接本机桥接…';
-  try{ws=new WebSocket(url);}catch(e){connectionState='连接失败';$('connectionInfo').textContent='浏览器拒绝连接，请使用本机 HTTP 页面并检查权限。';return;}
+  ws=new WebSocket(url);
   ws.onopen=()=>{connectionState='已连接，等待数据';$('connectionInfo').textContent='桥接已连接。等待 Neon 和桌垫标记。';};
   ws.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.type==='status'){$('connectionInfo').textContent=m.message;return;}
     if(m.type==='sample'&&m.source==='neon'&&typeof m.worn==='boolean'&&typeof m.surfaceValid==='boolean'&&['x','y','pupilLeft','pupilRight'].every(k=>m[k]===null||Number.isFinite(m[k]))){receive(m);connectionState='正在接收';}
@@ -111,10 +111,10 @@ function recordStart(){
   lastRecordSample=0;eventCount=0;$('record').textContent='■ 停止记录';$('recordBadge').textContent='● 记录中';$('recordBadge').classList.add('recording');$('export').disabled=true;log('start',snapshot());
 }
 function stopRecording(){if(!recording)return;log('stop');recording.durationMs=performance.now()-recording.start;delete recording.start;lastRecording=recording;recording=null;$('record').textContent='● 开始记录';$('recordBadge').textContent='记录已停止';$('recordBadge').classList.remove('recording');$('export').disabled=false;$('recordInfo').textContent=`已保留 ${lastRecording.samples.length} 个样本、${lastRecording.events.length} 个事件。导出后保存；刷新页面会清空。`;}
-function exportRecording(){if(!lastRecording)return;if(window.webkit?.messageHandlers?.exportRecording){window.webkit.messageHandlers.exportRecording.postMessage(JSON.stringify(lastRecording));return;}const blob=new Blob([JSON.stringify(lastRecording)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`donut-song-${lastRecording.source}-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}
+function exportRecording(){if(!lastRecording)return;const blob=new Blob([JSON.stringify(lastRecording)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`donut-song-${lastRecording.source}-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}
 function loadDemo(){const samples=[];for(let t=0;t<=30000;t+=33.3333){const zone=Math.floor(t/1800)%3;const gap=t%1800>1400;const v=4+.38*Math.sin(t/3100)+.1*Math.sin(t/900);samples.push({t,x:gap?.5:ZONES[zone].x,y:gap?.84:.43,pupilLeft:v,pupilRight:v+.02,worn:true,surfaceValid:true,phase:t<12000?'look':t<19000?'taste':'after',consumed:[t>25000,false,false],baseline:4,baselineReady:true});}replay={schema:'donut-song/1',source:'synthetic-demo',samples};restartReplay();$('replayInfo').textContent='30 秒合成示例，非真人数据。使用当前映射重新配乐。';}
 function restartReplay(){replayTime=0;replayIndex=0;replayPlaying=false;sample=null;instrument.stop();lastNoteZone=-1;for(let i=0;i<3;i++)setConsumed(i,false,true);dwell.reset();setPhase('prepare',true);$('replayProgress').value=0;updateReplayButton();}
-function updateReplayButton(){if(source==='replay')$('sourceBadge').textContent='● 数据回放 · '+({simulate:'模拟记录','synthetic-demo':'合成示例',live:'设备记录'}[replay?.source]||'未知来源');$('playReplay').textContent=replayPlaying?'Ⅱ 暂停回放':'▶ 播放';}
+function updateReplayButton(){$('playReplay').textContent=replayPlaying?'Ⅱ 暂停回放':'▶ 播放';}
 function tickReplay(now){if(!replayPlaying||!replay)return;replayTime+=Math.min(now-replayTick,100);replayTick=now;
   while(replayIndex<replay.samples.length&&replay.samples[replayIndex].t<=replayTime){const s=replay.samples[replayIndex++];receive(s);baseline=s.baseline;baselineReady=s.baselineReady!==false;
     if(s.phase!==phase)setPhase(s.phase,true);s.consumed.forEach((v,i)=>{if(v!==consumed[i])setConsumed(i,v,true);});}
@@ -146,7 +146,7 @@ function update(now){
   if(source==='live'&&(!fresh||!sample.worn))instrument.stop();
   if(recording&&now-lastRecordSample>=33){lastRecordSample=now;const s=fresh?sample:{x:null,y:null,pupilLeft:null,pupilRight:null,worn:false,surfaceValid:false};recording.samples.push({t:now-recording.start,x:s.x,y:s.y,pupilLeft:s.pupilLeft,pupilRight:s.pupilRight,worn:s.worn,surfaceValid:s.surfaceValid,deviceTimestamp:s.deviceTimestamp??null,sceneGaze:s.sceneGaze??null,markerCount:s.markerCount??null,baseline,baselineReady,smoothed,delta,phase,consumed:[...consumed]});if(now-recording.start>=3600000){stopRecording();toast('已达到一小时记录上限，请导出。');}}
   if(now-lastUITick>100){lastUITick=now;trace.push(pv!==null?delta:null);if(trace.length>180)trace.shift();$('pupilDelta').innerHTML=pv!==null&&baselineReady?`${delta>=0?'+':''}${delta.toFixed(2)} <small>mm</small>`:'— <small>mm</small>';
-    $('baselineLabel').textContent=baselineReady?`${source==='simulate'||source==='replay'&&['synthetic-demo','simulate'].includes(replay?.source)?'模拟':'个人'}参考值 ${baseline.toFixed(2)} mm`:'尚未取得参考值';$('bodyStatus').textContent=!config.body?'身体调制关闭':!baselineReady?'等待参考值':pv===null?'输入无效 · 回归中性':'身体调制开启';
+    $('baselineLabel').textContent=baselineReady?`${source==='simulate'||replay?.source==='synthetic-demo'&&source==='replay'?'模拟':'个人'}参考值 ${baseline.toFixed(2)} mm`:'尚未取得参考值';$('bodyStatus').textContent=!config.body?'身体调制关闭':!baselineReady?'等待参考值':pv===null?'输入无效 · 回归中性':'身体调制开启';
     $('inputHealth').textContent=source==='simulate'?'模拟输入':source==='replay'?(replayPlaying?'回放中':'回放暂停'):!fresh?'等待设备数据':!sample.worn?'眼镜未佩戴':!sample.surfaceValid?'桌垫标记不可用':pv===null?'注视可用 · 无瞳孔':'注视与瞳孔可用';
     $('diagnostics').textContent=`来源：${source}；连接：${connectionState}；标记：${sample?.markerCount??'—'}/4；有效瞳孔：${pv===null?'否':'是'}；参考值：${baselineReady?'就绪':'待采集'}。`;
     if(recording)$('recordInfo').textContent=`正在记录 ${((now-recording.start)/1000).toFixed(0)} 秒 · ${recording.samples.length} 样本 · ${recording.events.length} 事件；关闭页面前停止并导出。`;
@@ -157,13 +157,7 @@ function update(now){
 new p5(p=>{
   let host;
   p.setup=()=>{host=$('canvasHost');const c=p.createCanvas(host.clientWidth,host.clientWidth/1.5);c.parent(host);p.pixelDensity(Math.min(window.devicePixelRatio,2));p.textFont('Helvetica Neue, PingFang SC, sans-serif');
-    const pointAt=e=>{const r=c.elt.getBoundingClientRect();pointer={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};};
-    c.elt.style.touchAction='none';
-    c.elt.addEventListener('pointerdown',e=>{if(e.isPrimary){c.elt.setPointerCapture(e.pointerId);pointAt(e);}});
-    c.elt.addEventListener('pointermove',e=>{if(e.isPrimary&&(e.pointerType==='mouse'||e.buttons))pointAt(e);});
-    const clearPointer=()=>{pointer={x:null,y:null};};
-    for(const event of ['pointerleave','pointercancel','lostpointercapture'])c.elt.addEventListener(event,clearPointer);
-    c.elt.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')clearPointer();});
+    c.elt.addEventListener('pointermove',e=>{const r=c.elt.getBoundingClientRect();pointer={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};});c.elt.addEventListener('pointerleave',()=>pointer={x:null,y:null});
     ZONES.forEach(z=>{const b=document.createElement('button');b.className='food-button';b.style.left=(z.x*100)+'%';b.textContent='吃完了 −';b.setAttribute('aria-label',`${z.name}吃完了，退出声部`);b.setAttribute('aria-pressed','false');b.onclick=()=>setConsumed(z.id,!consumed[z.id]);host.append(b);consumedButtons.push(b);});
     new ResizeObserver(()=>{p.resizeCanvas(host.clientWidth,host.clientWidth/1.5);}).observe(host);
   };
@@ -200,8 +194,7 @@ document.querySelectorAll('[data-phase]').forEach(b=>b.onclick=()=>{if(source===
 $('projector').onclick=()=>{document.body.classList.toggle('projection');$('projector').textContent=document.body.classList.contains('projection')?'返回创作台 ↙':'投影视图 ↗';};
 $('demoReplay').onclick=loadDemo;$('restartReplay').onclick=restartReplay;
 $('playReplay').onclick=async()=>{if(!replay)loadDemo();if(replayIndex>=replay.samples.length)restartReplay();if(!audioEnabled)await toggleAudio();replayPlaying=!replayPlaying;replayTick=performance.now();if(!replayPlaying){instrument.stop();dwell.reset();}else if(phase==='taste'&&lastNoteZone>=0&&!consumed[lastNoteZone])instrument.sustain(config.notes[lastNoteZone]);updateReplayButton();};
-window.donutImportRecording=(text,name='记录.json')=>{try{if(text.length>100*1024*1024)throw Error('文件超过 100 MB。');const data=parseRecording(JSON.parse(text));if(recording){toast('请先停止并导出本轮记录，再导入回放。');return false;}switchSource('replay');replay=data;restartReplay();$('replayInfo').textContent=`已加载 ${name}（来源：${data.source||'未知'}）。使用当前映射重新配乐。`;toast('记录已载入。');return true;}catch(err){toast(err.message);return false;}};
-$('replayFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>100*1024*1024)throw Error('文件超过 100 MB。');window.donutImportRecording(await file.text(),file.name);}catch(err){toast(err.message);}e.target.value='';};
+$('replayFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>100*1024*1024)throw Error('文件超过 100 MB。');const data=parseRecording(JSON.parse(await file.text()));replay=data;restartReplay();$('replayInfo').textContent=`已加载 ${file.name}（来源：${data.source||'未知'}）。使用当前映射重新配乐。`;toast('记录已载入。');}catch(err){toast(err.message);}e.target.value='';};
 document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName))return;if(e.code==='Space'){e.preventDefault();toggleAudio();}if(e.key.toLowerCase()==='m')mark();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){instrument.stop();dwell.reset();if(replayPlaying){replayPlaying=false;updateReplayButton();}sample=null;pointer={x:null,y:null};}});
 window.addEventListener('beforeunload',e=>{if(recording||lastRecording){e.preventDefault();e.returnValue='';}});

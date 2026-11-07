@@ -3,6 +3,3 @@ opencv-contrib-python>=4.10,<5
 numpy==2.3.5
 websockets>=14,<16
 pupil-labs-neon-recording==1.0.1
-
-# Required by pupil-labs-video writer import in a clean environment.
-packaging>=24,<27
