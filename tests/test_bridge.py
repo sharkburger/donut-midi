@@ -46,8 +46,9 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
                 async with connect('ws://127.0.0.1:18765',origin='http://127.0.0.1:8088') as ws:
                     message=await asyncio.wait_for(ws.recv(),2)
                     self.assertIn('status',message)
-                with self.assertRaises(InvalidStatus):
-                    async with connect('ws://127.0.0.1:18765',origin='https://untrusted.example'):pass
+                for origin in ['https://untrusted.example','https://sharkburger.github.io','null']:
+                    with self.subTest(origin=origin), self.assertRaises(InvalidStatus):
+                        async with connect('ws://127.0.0.1:18765',origin=origin):pass
             finally:
                 task.cancel()
                 try:await task
