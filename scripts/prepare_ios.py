@@ -12,6 +12,7 @@ WEB=ROOT/'ios/web'
 WEB.mkdir(parents=True,exist_ok=True)
 for name in sorted(ASSETS):
     dest=WEB/name;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,dest)
+p=WEB/'dashboard.js';s=p.read_text().replace('Mouse · dwell to play','Touch · hold to play');p.write_text(s)
 p=WEB/'app.js';s=p.read_text()
 s=s.replace("function exportRecording(){if(!lastRecording)return;", "function exportRecording(){if(!lastRecording)return;if(window.webkit?.messageHandlers?.exportRecording){window.webkit.messageHandlers.exportRecording.postMessage(JSON.stringify(lastRecording));return;}")
 old="c.elt.addEventListener('pointermove',e=>{const r=c.elt.getBoundingClientRect();pointer={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};});c.elt.addEventListener('pointerleave',()=>pointer={x:null,y:null});"
