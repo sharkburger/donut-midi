@@ -21,7 +21,10 @@ new="""const pointAt=e=>{const r=c.elt.getBoundingClientRect();pointer={x:(e.cli
     c.elt.addEventListener('pointerdown',e=>{if(e.isPrimary){c.elt.setPointerCapture(e.pointerId);pointAt(e);}});
     c.elt.addEventListener('pointermove',e=>{if(e.isPrimary&&(e.pointerType==='mouse'||e.buttons))pointAt(e);});
     const clearPointer=()=>{pointer={x:null,y:null};};
-    for(const name of ['pointerleave','pointercancel','lostpointercapture'])c.elt.addEventListener(name,clearPointer);
+    c.elt.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')clearPointer();});
+    for(const name of ['pointercancel','lostpointercapture'])c.elt.addEventListener(name,clearPointer);
+    for(const name of ['touchstart','touchmove'])c.elt.addEventListener(name,e=>{if(e.touches.length===1){e.preventDefault();pointAt(e.touches[0]);}},{passive:false});
+    for(const name of ['touchend','touchcancel'])c.elt.addEventListener(name,clearPointer);
     c.elt.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')clearPointer();});"""
 assert old in s,'Deployed input handler changed; review mobile patch.'
 s=s.replace(old,new)
