@@ -4,7 +4,6 @@ import shutil
 import struct
 import zlib
 import json
-import re
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / 'ios/web'
 FILES = ['play.html','play-entry.js','app.js','core.js','style.css','site.css','mat.svg','vendor/p5.min.js','vendor/p5-LICENSE.txt']
@@ -16,10 +15,6 @@ for name in FILES:
 # The app has no project-site navigation; it opens straight into the instrument.
 p = WEB/'play.html'
 s = p.read_text().replace('href="index.html"', 'href="play.html"')
-s = re.sub(r'<nav class="site-nav".*?</nav>', '', s, flags=re.S)
-s = re.sub(r'<section class="welcome".*?</section>', '', s, flags=re.S)
-s = s.replace('<script src="play-entry.js" defer></script>', '')
-s = s.replace('href="play.html"', 'href="#"').replace('让目光选音。', '让触摸选音。').replace('看一会儿，听见一个音。品尝一口，让作品慢慢改变。', '按住一会儿，听见一个音。用模拟输入探索声音的变化。')
 s = s.replace('鼠标模拟', '触摸演奏 · 模拟输入').replace('鼠标代表目光；滑块代表身体输入。', '按住甜甜圈约半秒发声；滑块是模拟瞳孔值。')
 p.write_text(s)
 # RGB PNG: cream square, toasted ring, a small chocolate-colored center.
