@@ -19,10 +19,10 @@ final class InstrumentViewController: UIViewController, WKScriptMessageHandler, 
     private var pendingExport: URL?
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Donut MIDI · 测试版"
+        title = "Donut MIDI · Beta"
         view.backgroundColor = UIColor(red: 0.98, green: 0.96, blue: 0.94, alpha: 1)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "导入记录", style: .plain, target: self, action: #selector(importRecording))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "使用说明", style: .plain, target: self, action: #selector(showHelp))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Import Recording", style: .plain, target: self, action: #selector(importRecording))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Help", style: .plain, target: self, action: #selector(showHelp))
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .nonPersistent()
         config.userContentController.add(self, name: "exportRecording")
@@ -37,7 +37,7 @@ final class InstrumentViewController: UIViewController, WKScriptMessageHandler, 
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         guard let root = Bundle.main.resourceURL?.appendingPathComponent("web"), FileManager.default.fileExists(atPath: root.appendingPathComponent("index.html").path) else {
-            showError("缺少离线资源，请重新安装测试版。")
+            showError("Offline resources are missing. Please reinstall the beta.")
             return
         }
         webView.loadFileURL(root.appendingPathComponent("index.html"), allowingReadAccessTo: root)
@@ -47,13 +47,13 @@ final class InstrumentViewController: UIViewController, WKScriptMessageHandler, 
         webView?.evaluateJavaScript("document.getElementById('panicMusic')?.click();if(typeof instrument!=='undefined'){instrument.stop();}if(typeof replayPlaying!=='undefined'){replayPlaying=false;updateReplayButton();}", completionHandler: nil)
     }
     @objc private func showHelp() {
-        let alert = UIAlertController(title: "触摸与回放测试版", message: "1. 点开启声音。\n2. 按住甜甜圈约半秒发声，抬手后可再次演奏。\n3. Input source 选择 Replay data，播放合成示例，或从左上角导入 JSON。\n4. 模拟记录需勾选同意，停止后点导出，以系统分享保存到文件。\n\n本版保留八音区触摸与回放；Neon、参与者数据库、外部 MIDI 和 Workshop Editor 暂不支持。不使用相机或测量瞳孔。记录仅在内存中，退出前请导出。", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "知道了", style: .default))
+        let alert = UIAlertController(title: "Touch and Replay Beta", message: "1. Tap Enable sound & play.\n2. Hold a donut for about half a second to play a note. Lift your finger and touch again to retrigger.\n3. Choose Replay data under Input source to play the synthetic demo, or use Import Recording to load JSON.\n4. To record simulated input, enable recording consent, start and stop the recording, then tap Export JSON and save it through the system share sheet.\n\nThis beta supports eight-key touch performance and replay. Live Neon, the participant database, external MIDI and Workshop Editor are unavailable. It does not use the camera or measure pupils. Recordings stay in memory until exported; export before closing the app.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Got It", style: .default))
         present(alert, animated: true)
     }
     private func showError(_ message: String) {
-        let alert = UIAlertController(title: "无法完成操作", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "好", style: .default))
+        let alert = UIAlertController(title: "Unable to Complete Action", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
     @objc private func importRecording() {
@@ -65,7 +65,7 @@ final class InstrumentViewController: UIViewController, WKScriptMessageHandler, 
         guard let url = urls.first else { return }
         do {
             let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-            guard size <= 100 * 1024 * 1024 else { showError("文件超过 100 MB。"); return }
+            guard size <= 100 * 1024 * 1024 else { showError("The file exceeds 100 MB."); return }
             let text = try String(contentsOf: url, encoding: .utf8)
             // JSON serialization quotes arbitrary file content safely for JavaScript.
             let arguments = try JSONSerialization.data(withJSONObject: [text, url.lastPathComponent])
