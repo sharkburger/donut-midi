@@ -1,4 +1,6 @@
-# Donut MIDI — Eyes & Sound Regions
+<h1><img src="donut-midi-logo.png" width="48" alt=""> Donut MIDI Neon</h1>
+
+![Donut MIDI Neon — Eye-tracking MIDI control for Pupil Labs Neon](donut-midi-banner.png)
 
 An experimental gaze-controlled musical interface with eight donut-shaped note regions, built with Pupil Labs Neon, p5.js and Web Audio. The current instrument and its project documentation are in English.
 
@@ -37,4 +39,5 @@ Download **Donut-MIDI-Neon.dmg** from the release page, drag **Donut MIDI Neon.a
 The initial iOS project supports touch performance and JSON replay. It has passed unsigned simulator compilation and browser checks of touch input, JSON import and the native export bridge. Physical iPhone/iPad verification is still pending.
 
 **It has not been uploaded to TestFlight, and no invitation link is available yet.** Apple Developer Program activation, signing, device verification and Apple's external beta review are still required. The Mac edition has separately been submitted for App Store review; this does not mean it is publicly available on the App Store.
+
 
