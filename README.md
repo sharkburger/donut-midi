@@ -2,7 +2,7 @@
 
 ![Donut MIDI Neon — Eye-tracking MIDI control for Pupil Labs Neon](donut-midi-banner.png)
 
-An experimental gaze-controlled musical interface with eight donut-shaped note regions, built with Pupil Labs Neon, p5.js and Web Audio. The current instrument and its project documentation are in English.
+A creative coding workshop and gaze-controlled MIDI instrument adapted for Pupil Labs Neon, built with p5.js and Web Audio. Play eight donut-shaped note regions, then open the Workshop to edit and run interactive templates with eye tracking. The instrument and project documentation are in English.
 
 ## Try it or download the beta
 
@@ -14,6 +14,12 @@ An experimental gaze-controlled musical interface with eight donut-shaped note r
 - **iOS touch and replay beta project:** [iOS preparation](https://github.com/sharkburger/donut-midi/tree/ios-touch-testflight/ios)
 
 The `main` branch retains the early prototype code. Use the current source branch linked above for the eight-key version served on the public website. The older three-donut prototype is not the desktop beta distributed in the release linked here.
+
+## Creative coding workshop — edit, run, play with your eyes
+
+**Explore creative coding with your eyes.** Open the Workshop Editor, choose from multiple p5.js templates, edit and run the code, and experiment with eye-tracking interaction using Pupil Labs Neon. Start from a working example, change how gaze drives visuals and musical interactions, and export your sketch to keep developing it.
+
+Live eye-tracking interaction requires Neon glasses, Neon Companion and the local connector. Mouse simulation lets you explore the instrument without eye-tracking hardware. This is an independent workshop project, not an official Pupil Labs product.
 
 ## What the current version includes
 
@@ -39,5 +45,6 @@ Download **Donut-MIDI-Neon.dmg** from the release page, drag **Donut MIDI Neon.a
 The initial iOS project supports touch performance and JSON replay. It has passed unsigned simulator compilation and browser checks of touch input, JSON import and the native export bridge. Physical iPhone/iPad verification is still pending.
 
 **It has not been uploaded to TestFlight, and no invitation link is available yet.** Apple Developer Program activation, signing, device verification and Apple's external beta review are still required. The Mac edition has separately been submitted for App Store review; this does not mean it is publicly available on the App Store.
+
 
 
