@@ -2,12 +2,23 @@
 const chooser=document.querySelector('#template'),info=document.querySelector('#effect-info'),templateCache=new Map();
 let previousDraft=null;
 for(const group of [...new Set(NeonTemplates.map(t=>t.group))]){const optgroup=document.createElement('optgroup');optgroup.label=group;for(const t of NeonTemplates.filter(t=>t.group===group)){const o=new Option(t.title,t.id);optgroup.append(o);}chooser.append(optgroup);}chooser.value='physical';
-function selectedTemplate(){return NeonTemplates.find(t=>t.id===chooser.value);}
-function showTemplateInfo(){const t=selectedTemplate();info.replaceChildren();for(const [tag,text] of [['strong',t.title],['p',t.description],['p','Input: '+t.needs],['small','Try: '+t.tune]]){const e=document.createElement(tag);e.textContent=text;info.append(e);}document.querySelector('#asset-picker').hidden=!['asset','mirror'].includes(t.id);}
+function selectedTemplate(){
+ const builtIn=NeonTemplates.find(t=>t.id===chooser.value);if(builtIn)return builtIn;
+ const saved=window.NeonSketches?.templates().find(s=>'saved:'+s.id===chooser.value);
+ return saved?{id:'saved:'+saved.id,savedId:saved.id,assetId:saved.savedCode.match(/\/\/ @neon-template: ([a-z]+)/)?.[1],title:saved.savedTitle,description:'Your saved template. Loading creates a new sketch; the original stays saved.',needs:'Your sketch input settings',tune:'Edit your copy, give it a new name and Save sketch. Check Add to My templates only when you want to reuse it.'}:null;
+}
+function refreshUserTemplates(){
+ const selected=chooser.value;let group=document.querySelector('#personal-template-options');
+ if(!group){group=document.createElement('optgroup');group.id='personal-template-options';group.label='My templates';chooser.append(group);}
+ group.replaceChildren();for(const s of window.NeonSketches?.templates()||[]){const option=new Option(s.savedTitle,'saved:'+s.id);group.append(option);}
+ group.hidden=!group.children.length;
+ chooser.value=[...chooser.options].some(o=>o.value===selected)?selected:'physical';showTemplateInfo();
+}
+function showTemplateInfo(){const t=selectedTemplate();info.replaceChildren();if(!t)return;for(const [tag,text] of [['strong',t.title],['p',t.description],['p','Input: '+t.needs],['small','Try: '+t.tune]]){const e=document.createElement(tag);e.textContent=text;info.append(e);}document.querySelector('#asset-picker').hidden=!['asset','mirror'].includes(t.assetId||t.id);}
 chooser.onchange=showTemplateInfo;showTemplateInfo();
 function syncTemplateControls(){
  const id=editor.value.match(/\/\/ @neon-template: ([a-z]+)/)?.[1]||(editor.value.includes('// DONUT_LAYOUT_START')?'physical':null);
- if(id&&NeonTemplates.some(t=>t.id===id)){chooser.value=id;showTemplateInfo();}
+ if(!chooser.value.startsWith('saved:')&&id&&NeonTemplates.some(t=>t.id===id)){chooser.value=id;showTemplateInfo();}
  const physical=editor.value.includes('// DONUT_LAYOUT_START');document.querySelector('#edit-layout').hidden=!physical;document.querySelector('#print-layout').hidden=!physical;
 }
 function backupDraft(){previousDraft=editor.value;document.querySelector('#restore-draft').hidden=false;}
@@ -15,11 +26,12 @@ document.querySelector('#restore-draft').onclick=()=>{if(previousDraft===null)re
 document.querySelector('#load-template').onclick=async()=>{
  const button=document.querySelector('#load-template'),t=selectedTemplate();button.disabled=true;
  try{
+  if(t.savedId){window.NeonSketches.fromTemplate(t.savedId);return;}
   let code=templateCache.get(t.file);if(!code){const response=await fetch(t.file+'?v=scream-1');if(!response.ok)throw Error('Template could not load');code=await response.text();templateCache.set(t.file,code);}
-  backupDraft();if(t.id==='paint')code=code.replace('const PLAY_NOTES = true;','const PLAY_NOTES = false;');
+  if(t.id==='paint')code=code.replace('const PLAY_NOTES = true;','const PLAY_NOTES = false;');
   // This comment also selects the marker-only mat in the preview.
   if(t.file.startsWith('templates/')&&!code.includes('// @neon-template:'))code='// @neon-template: '+t.id+'\n'+code;
-  editor.value=code;run();document.querySelector('#template-help').textContent='Loaded '+t.title+'. Edit code and Run. Restore previous draft undoes this load; Download project ZIP keeps a portable copy.';
+  window.NeonSketches.beginFromCode(code,t.title+' copy');document.querySelector('#template-help').textContent='Loaded '+t.title+'. Edit code and Run. Restore previous draft undoes this load; Download project ZIP keeps a portable copy.';
  }catch(e){message.textContent=e.message;}finally{button.disabled=false;}
 };
 function matName(){return editor.value.includes('// DONUT_LAYOUT_START')||editor.value.includes('// @neon-template:')?'markers.svg':'monitor-mat.svg';}

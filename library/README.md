@@ -150,3 +150,12 @@ Drag the divider between code and preview to give the render more space. The ful
 Select **15 · Physical donut → scream**, then **Load template**. Use **Edit layout** to position the single target and **Download matching mat** to print its four-marker mat. The default mat is 50 × 33.3 cm with one 10 cm target in the centre. Print at actual size, place the donut within the target, and keep all four markers visible to Neon. Changing the physical position requires updating the layout and matching mat. The preview deliberately does not duplicate the printed tags.
 
 Connect your selected Neon, click **Enable scream** once, and look at the physical donut. After 3 seconds of continuous valid gaze inside its AOI, a synthesized cartoon scream starts; pitch and tremble intensify over the next 7 seconds with capped volume. Looking away, losing valid gaze, hiding the page or stopping the sketch resets and silences it. Sound comes from the computer or a connected speaker beside the donut. This measures AOI dwell, not a classified fixation or cognitive state. Mouse mode is available for testing. Edit `THRESHOLD_MS`, `RAMP_MS` and `DONUT_LAYOUT` to reuse it; project export includes the reusable `DwellRamp` and `ScreamVoice` helpers.
+
+
+## Named sketches and personal templates
+
+Use **New sketch** for a separate daily project. Enter a **Sketch name**, paste or write your code, then click **Save sketch** (Cmd/Ctrl+S also saves). **My sketches** reopens saved work and unfinished drafts. The current project is restored after a refresh; the original single-draft editor content is retained as a recovered sketch on first use. Switching projects keeps each unfinished draft separately.
+
+Check **Add to My templates** and save to list that saved version under **My templates** in the Effect library. Loading a personal template creates an independent sketch copy. Later unsaved edits do not change the template snapshot. Uncheck and save to remove it from My templates while retaining the sketch. Built-in templates also start a separate sketch, preserving your previous work.
+
+Sketches and personal templates stay in this browser and origin, not in the public GitHub template catalog or a cloud account. A different browser, website origin or Connector port has separate storage. Use **My sketches → Download library backup** for a JSON copy, and the existing code / project downloads for portable projects. Storage errors are shown explicitly; another tab cannot silently replace a newer library.
