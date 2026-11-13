@@ -55,3 +55,46 @@ if(embeddedWorkshop){
   }
  });
 }
+
+/* JavaScript syntax colors over the existing accessible textarea. No code execution. */
+(function(root){
+ 'use strict';
+ const keywords=new Set('async await break case catch class const continue debugger default delete do else export extends finally for from function get if import in instanceof let new of return set static super switch this throw try typeof var void while with yield'.split(' '));
+ const constants=new Set(['true','false','null','undefined','NaN','Infinity']);
+ const builtins=new Set('Array ArrayBuffer AudioContext Boolean Date Error Float32Array JSON Map Math Number Object Promise RegExp Set String URL Uint8Array p5 NeonP5 NeonEffects console document window globalThis performance'.split(' '));
+ const escape=value=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function highlight(code){
+  // Sticky matching ensures every character, including unfinished edits, is preserved.
+  const token=/\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*|"(?:\\[\s\S]|[^"\\\n])*(?:"|(?=\n|$))|'(?:\\[\s\S]|[^'\\\n])*(?:'|(?=\n|$))|`(?:\\[\s\S]|[^`\\])*`?|(?:0[xX][\da-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|(?:\d[\d_]*(?:\.[\d_]*)?|\.\d[\d_]*)(?:[eE][+-]?[\d_]+)?n?)|[A-Za-z_$][\w$]*|[{}[\]();,.?:]|[+\-*/%=!<>&|~^]+|\s+|[^]/gy;
+  let html='',match;
+  while((match=token.exec(code))){
+   const value=match[0],next=code.slice(token.lastIndex),previous=code.slice(0,match.index).trimEnd().slice(-1);
+   let type='';
+   if(value.startsWith('//')||value.startsWith('/*'))type='comment';
+   else if(/^["'`]/.test(value))type='string';
+   else if(/^(?:\d|\.\d)/.test(value))type='number';
+   else if(constants.has(value))type='constant';
+   else if(keywords.has(value))type='keyword';
+   else if(builtins.has(value))type='builtin';
+   else if(/^[A-Za-z_$]/.test(value)){if(/^\s*\(/.test(next))type='function';else if(previous==='.'||/^\s*:/.test(next))type='property';}
+   else if(/^[+\-*/%=!<>&|~^]+$/.test(value))type='operator';
+   const safe=escape(value);html+=type?`<span class="syntax-${type}">${safe}</span>`:safe;
+  }
+  return html;
+ }
+ if(typeof module!=='undefined'&&module.exports){module.exports={highlight};return;}
+ const editor=document.querySelector('#code-editor');if(!editor)return;
+ const shell=document.createElement('div');shell.className='syntax-editor';
+ const preview=document.createElement('pre');preview.className='syntax-preview';preview.setAttribute('aria-hidden','true');
+ const code=document.createElement('code');preview.append(code);editor.before(shell);shell.append(preview,editor);
+ editor.wrap='off';editor.setAttribute('autocapitalize','off');editor.setAttribute('autocorrect','off');
+ let pending=false;
+ function syncScroll(){preview.scrollTop=editor.scrollTop;preview.scrollLeft=editor.scrollLeft;}
+ function render(){pending=false;code.innerHTML=highlight(editor.value)+'\n';syncScroll();}
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(render);}}
+ editor.addEventListener('input',schedule);editor.addEventListener('scroll',syncScroll);
+ // Templates, image replacement and layout editing assign .value without input events.
+ const descriptor=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');
+ Object.defineProperty(editor,'value',{configurable:true,get(){return descriptor.get.call(this);},set(value){descriptor.set.call(this,value);schedule();}});
+ render();
+})(globalThis);
